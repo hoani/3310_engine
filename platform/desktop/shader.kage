@@ -1,0 +1,20 @@
+//kage:unit pixels
+
+package main
+
+var XOffset float
+var YOffset float
+var XScale float
+var YScale float
+var PixelOn vec4
+var PixelOff vec4
+
+
+func Fragment(dstPos vec4, srcPos vec2, _ vec4) vec4 {
+	var base = imageSrc0At(srcPos)
+	if ((mod(dstPos.x - XOffset, XScale) - 0.5) < 0.5) || ((mod(dstPos.y - YOffset, YScale) - 0.5) < 0.5) {
+		return mix(PixelOff, PixelOn, base.r*sqrt(2.0/XScale))
+	}
+
+	return mix(PixelOff, PixelOn, base.r)
+}

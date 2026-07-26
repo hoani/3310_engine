@@ -1,0 +1,20 @@
+//kage:unit pixels
+
+package main
+
+var Tau float // Time constant, unit of 1/frames
+
+func Fragment(dstPos vec4, srcPos vec2, _ vec4) vec4 {
+	var next = imageSrc0At(srcPos)
+	var previous = imageSrc1At(srcPos)
+	var PixelOn = vec4(1.0, 1.0, 1.0, 1.0)
+	var PixelOff = vec4(0.0, 0.0, 0.0, 1.0)
+
+	if next.r == 0.0 {
+		if previous.r < 1/32 {
+			return PixelOff
+		}
+		return mix(previous, PixelOff, Tau)
+	}
+	return PixelOn
+}
