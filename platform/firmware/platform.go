@@ -1,64 +1,59 @@
 package firmware
 
 import (
+	"fmt"
 	"image/color"
 	"machine"
 	"time"
 
-	"github.com/ebitengine/gomobile/geom"
-	"github.com/hoani/3310_engine/engine/canvas"
+	"github.com/hoani/3310_engine/engine"
 	"tinygo.org/x/drivers/pcd8544"
 )
 
-type Game struct {
-	count  int
-	canvas canvas.Canvas
-	device *pcd8544.Device
-	color  color.RGBA
-	pos    geom.Point
+type Platform struct {
+	game   engine.Game
+	canvas engine.Canvas
 	led    machine.Pin
+	lcd    *pcd8544.Device
 }
 
-func NewGame(lcd *pcd8544.Device, led machine.Pin) *Game {
-	return &Game{
-		count:  0,
-		canvas: canvas.New().Build(),
-		color:  color.RGBA{255, 255, 255, 255},
-		device: lcd,
+func New(game engine.Game, lcd *pcd8544.Device, led machine.Pin) *Platform {
+	return &Platform{
+		game:   game,
+		canvas: NewCanvas(lcd),
 		led:    led,
+		lcd:    lcd,
 	}
 }
 
-func (g *Game) Update() error {
-	g.count++
-	i := g.count % g.canvas.Size().X
-	j := (g.count / g.canvas.Size().X) % g.canvas.Size().Y
-
-	c := color.RGBA{255, 255, 255, 255}
-	if g.count/(g.canvas.Size().X*g.canvas.Size().Y)%2 == 1 {
-		c = color.RGBA{0, 0, 0, 255}
-	}
-	g.canvas.Image().Set(i, j, c)
-
-	return nil
-}
-
-func ColorToRgba(c color.Color) color.RGBA {
-	r, g, b, a := c.RGBA()
-	return color.RGBA{uint8(r >> 8), uint8(g >> 8), uint8(b >> 8), uint8(a >> 8)}
-}
-
-func (g *Game) Draw() error {
-	for i := 0; i < g.canvas.Size().X; i++ {
-		for j := 0; j < g.canvas.Size().Y; j++ {
-			g.device.SetPixel(int16(i), int16(j), ColorToRgba(g.canvas.Image().At(i, j)))
+func (p *Platform) Run() error {
+	period := time.Second / time.Duration(p.game.Fps())
+	for {
+		start := time.Now()
+		if err := p.game.Update(); err != nil {
+			return err
 		}
+		dStart := time.Now()
+		if err := p.Draw(); err != nil {
+			return err
+		}
+		dDur := time.Since(dStart)
+		dur := time.Since(start)
+		rem := period - dur
+		fmt.Printf("cpu %d%%, draw %d%%\n", 100*rem/period, 100*dDur/dur)
+		rem = period - time.Since(start)
+		time.Sleep(rem)
 	}
-	g.device.Display()
-	return nil
 }
 
-func Run() {
+func (p *Platform) Draw() error {
+	if err := p.game.Draw(p.canvas); err != nil {
+		return err
+	}
+	return p.lcd.Display()
+}
+
+func Run(game engine.Game) {
 	// Configure SPI with a 1 MHz frequency.
 	bus := machine.SPI0
 	bus.Configure(machine.SPIConfig{
@@ -92,9 +87,7 @@ func Run() {
 	led := machine.LED
 	led.Configure(machine.PinConfig{Mode: machine.PinOutput})
 
-	g := NewGame(d, led)
-
-	period := time.Second / time.Duration(60)
+	p := New(game, d, led)
 
 	c := color.RGBA{255, 255, 255, 255}
 
@@ -109,12 +102,8 @@ func Run() {
 		}
 	}
 
-	for {
-		start := time.Now()
-		g.Update()
-		g.Draw()
-		delta := time.Since(start)
-		rem := period - delta
-		time.Sleep(rem)
+	err := p.Run()
+	if err != nil {
+		fmt.Printf("Game crash %e", err)
 	}
 }
