@@ -11,6 +11,7 @@ import (
 	"os"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hoani/3310_engine/engine/canvas"
 )
 
 //go:embed runner.png
@@ -109,7 +110,7 @@ type Game struct {
 	count     int
 	shader    Shaders
 	colors    GameColors
-	canvas    *ebiten.Image
+	canvas    canvas.Canvas
 	shadowing *ebiten.Image
 	scale     float64
 	ratio     float64
@@ -125,39 +126,31 @@ func (g *Game) Update() error {
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
-	x0 := float64((g.count / 8) % g.canvas.Bounds().Dx())
-	y0 := float64(g.canvas.Bounds().Dy())/2 - float64(32*(len(g.sprites)/2))
+	x0 := float64((g.count / 8) % g.canvas.Image().Bounds().Dx())
+	y0 := float64(g.canvas.Image().Bounds().Dy())/2 - float64(32*(len(g.sprites)/2))
 
-	g.canvas.Fill(color.Black)
+	g.canvas.Clear()
+	c := ebiten.NewImageFromImage(g.canvas.Image())
 	for i, s := range g.sprites {
-		// opts := &ebiten.DrawRectShaderOptions{}
-		// opts.Uniforms = map[string]any{
-		// 	"PixelOn":  g.colors.On,
-		// 	"PixelOff": g.colors.Off,
-		// }
-		// opts.Images[0] = s.Frame()
-		// img := ebiten.NewImage(s.Frame().Bounds().Dx(), s.Frame().Bounds().Dy())
-		// img.Clear()
-		// img.DrawRectShader(s.sheet.W, s.sheet.H, g.shader, opts)
 		op := &ebiten.DrawImageOptions{}
 		op.GeoM.Translate(-float64(s.sheet.W)/2, -float64(s.sheet.H)/2)
 		op.GeoM.Translate(x0, y0+float64(i)*32.0)
-		g.canvas.DrawImage(s.Frame(), op)
+		c.DrawImage(s.Frame(), op)
 	}
 
 	prev := ebiten.NewImageFromImage(g.shadowing)
 	opts := &ebiten.DrawRectShaderOptions{}
-	opts.Images[0] = g.canvas
+	opts.Images[0] = c
 	opts.Images[1] = prev
 	opts.Uniforms = map[string]any{
 		// falltime's 125ms, one fall time is techncially 5*tau so 3.0/0.125 1/s * 1.0/60 s/frames
 		"Tau": 4.0 / (64.0 * 0.125), // rounded frames up to 64.0 for better math
 	}
 
-	g.shadowing.DrawRectShader(g.canvas.Bounds().Size().X, g.canvas.Bounds().Size().Y, g.shader.shadowing, opts)
+	g.shadowing.DrawRectShader(g.canvas.Size().X, g.canvas.Size().Y, g.shader.shadowing, opts)
 
-	xOffset := math.Round(float64(screen.Bounds().Size().X)-g.scale*float64(g.canvas.Bounds().Size().X)) / 2.0
-	yOffset := math.Round(float64(screen.Bounds().Size().Y)-g.scale*g.ratio*float64(g.canvas.Bounds().Size().Y)) / 2.0
+	xOffset := math.Round(float64(screen.Bounds().Size().X)-g.scale*float64(g.canvas.Size().X)) / 2.0
+	yOffset := math.Round(float64(screen.Bounds().Size().Y)-g.scale*g.ratio*float64(g.canvas.Size().Y)) / 2.0
 
 	opts = &ebiten.DrawRectShaderOptions{}
 	opts.Uniforms = map[string]any{
@@ -177,11 +170,11 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		screen.Fill(color.RGBA{0xce, 0xf9, 0xe0, 0xff})
 	}
 
-	screen.DrawRectShader(g.canvas.Bounds().Size().X, g.canvas.Bounds().Size().Y, g.shader.screen, opts)
-	screen.DrawImage(g.canvas, &ebiten.DrawImageOptions{})
+	screen.DrawRectShader(g.canvas.Size().X, g.canvas.Size().Y, g.shader.screen, opts)
+	screen.DrawImage(c, &ebiten.DrawImageOptions{})
 
 	shadowOpt := &ebiten.DrawImageOptions{}
-	shadowOpt.GeoM.Translate(0.0, float64(g.canvas.Bounds().Dy()))
+	shadowOpt.GeoM.Translate(0.0, float64(g.canvas.Size().Y))
 	screen.DrawImage(g.shadowing, shadowOpt)
 
 }
@@ -214,7 +207,7 @@ func Run() {
 	ebiten.SetWindowSize(840, 480)
 	ebiten.SetWindowTitle("Hoani's World")
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
-	g := &Game{colors: NewGameColors(), canvas: ebiten.NewImage(84, 48), shadowing: ebiten.NewImage(84, 48), scale: 10.0, ratio: 1.25}
+	g := &Game{colors: NewGameColors(), canvas: canvas.New().Build(), shadowing: ebiten.NewImage(84, 48), scale: 10.0, ratio: 1.25}
 	runnerPng, _, err := image.Decode(bytes.NewReader(Runner_png))
 	handleError(err)
 	runnerImg := ebiten.NewImageFromImage(runnerPng)

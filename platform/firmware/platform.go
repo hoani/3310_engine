@@ -5,8 +5,58 @@ import (
 	"machine"
 	"time"
 
+	"github.com/ebitengine/gomobile/geom"
+	"github.com/hoani/3310_engine/engine/canvas"
 	"tinygo.org/x/drivers/pcd8544"
 )
+
+type Game struct {
+	count  int
+	canvas canvas.Canvas
+	device *pcd8544.Device
+	color  color.RGBA
+	pos    geom.Point
+	led    machine.Pin
+}
+
+func NewGame(lcd *pcd8544.Device, led machine.Pin) *Game {
+	return &Game{
+		count:  0,
+		canvas: canvas.New().Build(),
+		color:  color.RGBA{255, 255, 255, 255},
+		device: lcd,
+		led:    led,
+	}
+}
+
+func (g *Game) Update() error {
+	g.count++
+	i := g.count % g.canvas.Size().X
+	j := (g.count / g.canvas.Size().X) % g.canvas.Size().Y
+
+	c := color.RGBA{255, 255, 255, 255}
+	if g.count/(g.canvas.Size().X*g.canvas.Size().Y)%2 == 1 {
+		c = color.RGBA{0, 0, 0, 255}
+	}
+	g.canvas.Image().Set(i, j, c)
+
+	return nil
+}
+
+func ColorToRgba(c color.Color) color.RGBA {
+	r, g, b, a := c.RGBA()
+	return color.RGBA{uint8(r >> 8), uint8(g >> 8), uint8(b >> 8), uint8(a >> 8)}
+}
+
+func (g *Game) Draw() error {
+	for i := 0; i < g.canvas.Size().X; i++ {
+		for j := 0; j < g.canvas.Size().Y; j++ {
+			g.device.SetPixel(int16(i), int16(j), ColorToRgba(g.canvas.Image().At(i, j)))
+		}
+	}
+	g.device.Display()
+	return nil
+}
 
 func Run() {
 	// Configure SPI with a 1 MHz frequency.
@@ -42,6 +92,10 @@ func Run() {
 	led := machine.LED
 	led.Configure(machine.PinConfig{Mode: machine.PinOutput})
 
+	g := NewGame(d, led)
+
+	period := time.Second / time.Duration(60)
+
 	c := color.RGBA{255, 255, 255, 255}
 
 	for j := range 48 {
@@ -56,23 +110,11 @@ func Run() {
 	}
 
 	for {
-
-		// time.Sleep(100 * time.Millisecond)
-		// led.Set(!led.Get())
-		// d.Display()
-
-		for j := range 48 {
-			for i := range 84 {
-				led.Set(!led.Get())
-				d.SetPixel(int16(i), int16(j), c)
-				time.Sleep(10 * time.Millisecond)
-				d.Display()
-			}
-		}
-		if c.A == 0 {
-			c = color.RGBA{255, 255, 255, 255}
-		} else {
-			c = color.RGBA{0, 0, 0, 0}
-		}
+		start := time.Now()
+		g.Update()
+		g.Draw()
+		delta := time.Since(start)
+		rem := period - delta
+		time.Sleep(rem)
 	}
 }
