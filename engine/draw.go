@@ -1,5 +1,14 @@
 package engine
 
+import (
+	"image/color"
+
+	"tinygo.org/x/tinyfont"
+)
+
+var PixelOff = color.RGBA{0, 0, 0, 255}
+var PixelOn = color.RGBA{255, 255, 255, 255}
+
 type Point struct {
 	X int
 	Y int
@@ -13,15 +22,18 @@ type Draw interface {
 	HLine(x0, x1, y int, on bool)
 	FillTriangle(p0, p1, p2 Point, on bool)
 	Sprite(x, y int, spr Sprite, index int, invert bool)
+	Text(x, y int, font tinyfont.Fonter, str string, on bool)
 }
 
 type draw struct {
-	c Canvas
+	c  Canvas
+	fc *FontCanvas
 }
 
 func NewDraw(c Canvas) Draw {
 	return &draw{
-		c: c,
+		c:  c,
+		fc: &FontCanvas{c: c, col: PixelOff},
 	}
 }
 
@@ -44,6 +56,16 @@ func (d *draw) Sprite(x, y int, spr Sprite, index int, invert bool) {
 			}
 		}
 	}
+}
+
+func (d *draw) Text(x, y int, font tinyfont.Fonter, str string, on bool) {
+	col := PixelOff
+	if on {
+		col = PixelOn
+	}
+	// Note: we use a font canvas to set the color because the generated Fonter ignores our color.
+	d.fc.SetColor(col)
+	tinyfont.WriteLine(d.fc, font, int16(x), int16(y), str, col)
 }
 
 // func (d *Draw) Line(x0, y0, x1, y1 int, w int, c bool) {

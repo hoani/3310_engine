@@ -7,9 +7,6 @@ import (
 	"tinygo.org/x/drivers/pcd8544"
 )
 
-var PixelOff = color.RGBA{0, 0, 0, 0}
-var PixelOn = color.RGBA{255, 255, 255, 255}
-
 type canvas struct {
 	device *pcd8544.Device
 }
@@ -26,9 +23,9 @@ func (c *canvas) Clear() {
 
 func (c *canvas) Set(x, y int, val bool) {
 	if val {
-		c.device.SetPixel(int16(x), int16(y), PixelOn)
+		c.device.SetPixel(int16(x), int16(y), engine.PixelOn)
 	} else {
-		c.device.SetPixel(int16(x), int16(y), PixelOff)
+		c.device.SetPixel(int16(x), int16(y), engine.PixelOff)
 	}
 }
 
@@ -44,4 +41,21 @@ func (c *canvas) Width() int {
 func (c *canvas) Height() int {
 	_, h := c.device.Size()
 	return int(h)
+}
+
+func (c *canvas) Size() (x, y int16) {
+	return c.device.Size()
+}
+
+func (c *canvas) SetPixel(x, y int16, col color.RGBA) {
+	if col.R == 0 && col.G == 0 && col.B == 0 {
+		col = engine.PixelOff
+	} else {
+		col = engine.PixelOn
+	}
+	c.device.SetPixel(x, y, col)
+}
+
+func (c *canvas) Display() error {
+	return c.Display()
 }

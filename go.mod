@@ -6,6 +6,7 @@ require (
 	github.com/hajimehoshi/ebiten/v2 v2.9.9
 	github.com/stretchr/testify v1.11.1
 	tinygo.org/x/drivers v0.35.0
+	tinygo.org/x/tinyfont v0.7.0
 )
 
 require (

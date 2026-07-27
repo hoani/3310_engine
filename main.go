@@ -1,9 +1,8 @@
 package main
 
 import (
-	"math"
-
 	"github.com/hoani/3310_engine/engine"
+	"github.com/hoani/3310_engine/font"
 	"github.com/hoani/3310_engine/platform"
 	"github.com/hoani/3310_engine/sprites/pgm"
 )
@@ -37,32 +36,36 @@ func (g *Game) Draw(canvas engine.Canvas) error {
 	}
 	canvas.Set(i, j, c)
 
-	if g.count%120 == 0 {
+	// if g.count%120 == 0 {
 
-		alpha := math.Pi * float64(g.count) / float64(10*g.Fps())
-		s0a := math.Sin(alpha)
-		c0a := math.Cos(alpha)
+	// 	alpha := math.Pi * float64(g.count) / float64(10*g.Fps())
+	// 	s0a := math.Sin(alpha)
+	// 	c0a := math.Cos(alpha)
 
-		s1a := math.Sin(alpha + math.Pi*2.0/3.0)
-		c1a := math.Cos(alpha + math.Pi*2.0/3.0)
+	// 	s1a := math.Sin(alpha + math.Pi*2.0/3.0)
+	// 	c1a := math.Cos(alpha + math.Pi*2.0/3.0)
 
-		s2a := math.Sin(alpha + math.Pi*4.0/3.0)
-		c2a := math.Cos(alpha + math.Pi*4.0/3.0)
+	// 	s2a := math.Sin(alpha + math.Pi*4.0/3.0)
+	// 	c2a := math.Cos(alpha + math.Pi*4.0/3.0)
 
-		d := 20.0
+	// 	d := 20.0
 
-		x0, y0 := canvas.Width()/2, canvas.Height()/2
+	// 	x0, y0 := canvas.Width()/2, canvas.Height()/2
 
-		p0 := engine.P(int(d*c0a)+x0, int(d*s0a)+y0)
-		p1 := engine.P(int(d*c1a)+x0, int(d*s1a)+y0)
-		p2 := engine.P(int(d*c2a)+x0, int(d*s2a)+y0)
+	// 	p0 := engine.P(int(d*c0a)+x0, int(d*s0a)+y0)
+	// 	p1 := engine.P(int(d*c1a)+x0, int(d*s1a)+y0)
+	// 	p2 := engine.P(int(d*c2a)+x0, int(d*s2a)+y0)
 
-		g.draw.FillTriangle(p0, p1, p2, c)
-	}
+	// 	g.draw.FillTriangle(p0, p1, p2, c)
+	// }
 
 	for i := 0; i < 26; i++ {
 		g.draw.Sprite(i*7, 12, g.font, i, !c)
 	}
+
+	g.draw.Text(4, 28, &font.EffortsPro, "Hello World", !c)
+	g.draw.Text(4, 6, &font.Tiny, "Hello World", true)
+	g.draw.Text(4, 12, &font.Tiny, "Hello World", false)
 
 	return nil
 }
