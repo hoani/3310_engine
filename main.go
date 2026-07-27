@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/hoani/3310_engine/engine"
+	"github.com/hoani/3310_engine/engine/draw"
 	"github.com/hoani/3310_engine/font"
 	"github.com/hoani/3310_engine/platform"
 	"github.com/hoani/3310_engine/sprites/pgm"
@@ -9,7 +10,7 @@ import (
 
 type Game struct {
 	count int
-	draw  engine.Draw
+	draw  draw.Draw
 	font  engine.Sprite
 }
 
@@ -24,7 +25,7 @@ func (g *Game) Update() error {
 
 func (g *Game) Draw(canvas engine.Canvas) error {
 	if g.draw == nil {
-		g.draw = engine.NewDraw(canvas)
+		g.draw = draw.New(canvas)
 	}
 
 	i := g.count % canvas.Width()

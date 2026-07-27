@@ -1,29 +1,30 @@
-package engine
+package draw
 
 import (
 	"image/color"
+
+	"github.com/hoani/3310_engine/engine"
 )
 
 // Annoying generated fonts ignore colors when writing, so added this inverter
 
 type FontCanvas struct {
-	c   Canvas
-	col color.RGBA
+	c   engine.Canvas
+	ink bool
 }
 
-func (fc *FontCanvas) SetColor(col color.RGBA) {
-	fc.col = col
+func (fc *FontCanvas) SetInk(ink bool) {
+	fc.ink = ink
 }
 
 func (fc *FontCanvas) Size() (x, y int16) {
-	return fc.c.Size()
+	return int16(fc.c.Width()), int16(fc.c.Height())
 }
 
 func (fc *FontCanvas) SetPixel(x, y int16, col color.RGBA) {
-	if col.A == 0x00 {
-		return
+	if col.A != 0 {
+		fc.c.Set(int(x), int(y), fc.ink)
 	}
-	fc.c.SetPixel(x, y, fc.col)
 }
 
 func (fc *FontCanvas) Display() error {

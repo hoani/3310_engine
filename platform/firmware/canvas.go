@@ -4,6 +4,7 @@ import (
 	"image/color"
 
 	"github.com/hoani/3310_engine/engine"
+	"github.com/hoani/3310_engine/engine/draw"
 	"tinygo.org/x/drivers/pcd8544"
 )
 
@@ -23,9 +24,9 @@ func (c *canvas) Clear() {
 
 func (c *canvas) Set(x, y int, val bool) {
 	if val {
-		c.device.SetPixel(int16(x), int16(y), engine.PixelOn)
+		c.device.SetPixel(int16(x), int16(y), draw.PixelOn)
 	} else {
-		c.device.SetPixel(int16(x), int16(y), engine.PixelOff)
+		c.device.SetPixel(int16(x), int16(y), draw.PixelOff)
 	}
 }
 
@@ -49,9 +50,9 @@ func (c *canvas) Size() (x, y int16) {
 
 func (c *canvas) SetPixel(x, y int16, col color.RGBA) {
 	if col.R == 0 && col.G == 0 && col.B == 0 {
-		col = engine.PixelOff
+		col = draw.PixelOff
 	} else {
-		col = engine.PixelOn
+		col = draw.PixelOn
 	}
 	c.device.SetPixel(x, y, col)
 }

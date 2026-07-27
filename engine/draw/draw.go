@@ -1,8 +1,9 @@
-package engine
+package draw
 
 import (
 	"image/color"
 
+	"github.com/hoani/3310_engine/engine"
 	"tinygo.org/x/tinyfont"
 )
 
@@ -21,19 +22,19 @@ func P(x, y int) Point {
 type Draw interface {
 	HLine(x0, x1, y int, on bool)
 	FillTriangle(p0, p1, p2 Point, on bool)
-	Sprite(x, y int, spr Sprite, index int, invert bool)
+	Sprite(x, y int, spr engine.Sprite, index int, invert bool)
 	Text(x, y int, font tinyfont.Fonter, str string, on bool)
 }
 
 type draw struct {
-	c  Canvas
+	c  engine.Canvas
 	fc *FontCanvas
 }
 
-func NewDraw(c Canvas) Draw {
+func New(c engine.Canvas) Draw {
 	return &draw{
 		c:  c,
-		fc: &FontCanvas{c: c, col: PixelOff},
+		fc: &FontCanvas{c: c, ink: false},
 	}
 }
 
@@ -44,7 +45,7 @@ func AbsInt(val int) int {
 	return -val
 }
 
-func (d *draw) Sprite(x, y int, spr Sprite, index int, invert bool) {
+func (d *draw) Sprite(x, y int, spr engine.Sprite, index int, invert bool) {
 	for i := 0; i < spr.Width(); i++ {
 		for j := 0; j < spr.Height(); j++ {
 			show, on := spr.At(i, j, index)
@@ -59,13 +60,9 @@ func (d *draw) Sprite(x, y int, spr Sprite, index int, invert bool) {
 }
 
 func (d *draw) Text(x, y int, font tinyfont.Fonter, str string, on bool) {
-	col := PixelOff
-	if on {
-		col = PixelOn
-	}
 	// Note: we use a font canvas to set the color because the generated Fonter ignores our color.
-	d.fc.SetColor(col)
-	tinyfont.WriteLine(d.fc, font, int16(x), int16(y), str, col)
+	d.fc.SetInk(on)
+	tinyfont.WriteLine(d.fc, font, int16(x), int16(y), str, PixelOn)
 }
 
 // func (d *Draw) Line(x0, y0, x1, y1 int, w int, c bool) {
