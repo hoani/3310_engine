@@ -5,11 +5,13 @@ import (
 
 	"github.com/hoani/3310_engine/engine"
 	"github.com/hoani/3310_engine/platform"
+	"github.com/hoani/3310_engine/sprites/pgm"
 )
 
 type Game struct {
 	count int
 	draw  engine.Draw
+	font  engine.Sprite
 }
 
 func (g *Game) Fps() int {
@@ -58,9 +60,17 @@ func (g *Game) Draw(canvas engine.Canvas) error {
 		g.draw.FillTriangle(p0, p1, p2, c)
 	}
 
+	for i := 0; i < 26; i++ {
+		g.draw.Sprite(i*7, 12, g.font, i, !c)
+	}
+
 	return nil
 }
 
 func main() {
-	platform.Run(&Game{})
+	font, err := engine.StripFromP5(pgm.ClassicLight, 7)
+	if err != nil {
+		panic(err)
+	}
+	platform.Run(&Game{font: font})
 }

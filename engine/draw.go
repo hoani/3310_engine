@@ -12,6 +12,7 @@ func P(x, y int) Point {
 type Draw interface {
 	HLine(x0, x1, y int, on bool)
 	FillTriangle(p0, p1, p2 Point, on bool)
+	Sprite(x, y int, spr Sprite, index int, invert bool)
 }
 
 type draw struct {
@@ -29,6 +30,20 @@ func AbsInt(val int) int {
 		return val
 	}
 	return -val
+}
+
+func (d *draw) Sprite(x, y int, spr Sprite, index int, invert bool) {
+	for i := 0; i < spr.Width(); i++ {
+		for j := 0; j < spr.Height(); j++ {
+			show, on := spr.At(i, j, index)
+			if show {
+				if invert {
+					on = !on
+				}
+				d.c.Set(x+i, y+j, on)
+			}
+		}
+	}
 }
 
 // func (d *Draw) Line(x0, y0, x1, y1 int, w int, c bool) {
