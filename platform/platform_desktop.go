@@ -8,5 +8,5 @@ import (
 )
 
 func Run(game engine.Game) {
-	desktop.Run()
+	desktop.Run(game)
 }
