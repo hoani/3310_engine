@@ -11,7 +11,7 @@ type TriangleBuilder struct {
 func NewTriangleBuilder(c engine.Canvas) *TriangleBuilder {
 	return &TriangleBuilder{
 		c:     c,
-		shade: ShadeBlack,
+		shade: engine.ShadeBlack,
 	}
 }
 
@@ -23,9 +23,9 @@ func (b *TriangleBuilder) New(p0, p1, p2 Point) *TriangleBuilder {
 }
 
 func (b *TriangleBuilder) Draw(on bool) {
-	shade := ShadeBlack
+	shade := engine.ShadeBlack
 	if !on {
-		shade = ShadeWhite
+		shade = engine.ShadeWhite
 	}
 	b.DrawShade(shade)
 }

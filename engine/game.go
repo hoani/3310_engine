@@ -17,6 +17,13 @@ type Game interface {
 	Draw(canvas Canvas) error
 }
 
+type Sprite interface {
+	At(i, j, index int) (visible bool, on bool)
+	Width() int
+	Height() int
+	Count() int
+}
+
 type Key int
 
 const (

@@ -1,8 +1,6 @@
 package draw
 
-const ShadeWhite uint8 = 0xF9
-const ShadeBlack uint8 = 0x00
-const ShadeTransparent uint8 = 0xFF
+import "github.com/hoani/3310_engine/engine"
 
 // Thresholds for 8x8 bayer dithering
 var bayer8 = [8][8]uint8{
@@ -17,10 +15,10 @@ var bayer8 = [8][8]uint8{
 }
 
 func Dither(x, y int, shade uint8) (draw bool, value bool) {
-	if shade == ShadeTransparent {
+	if shade == engine.ShadeTransparent {
 		return false, false
 	}
-	if shade >= ShadeWhite {
+	if shade >= engine.ShadeWhite {
 		return true, false
 	}
 	level := (shade >> 3) & 0x1f

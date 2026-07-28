@@ -29,9 +29,9 @@ import (
 )
 
 const (
-	valInk         = 0   // opaque + dark
-	valPaper       = 255 // opaque + light
-	valTransparent = 128 // alpha below the cut
+	valInk         = 0    // opaque + dark
+	valPaper       = 0xf9 // opaque + light
+	valTransparent = 0xff // alpha below the cut
 )
 
 func main() {
@@ -39,15 +39,16 @@ func main() {
 	out := flag.String("out", ".", "directory to write .pgm (P5) files")
 	threshold := flag.Int("threshold", 128, "luminance 0-255 below which an opaque pixel is ink")
 	alphaCut := flag.Int("alpha", 128, "alpha 0-255 at or above which a pixel is opaque")
+	gray := flag.Bool("gray", false, "retain grayscale values (default: two-colour threshold)")
 	flag.Parse()
 
-	if err := run(*in, *out, *threshold, *alphaCut); err != nil {
+	if err := run(*in, *out, *gray, *threshold, *alphaCut); err != nil {
 		fmt.Fprintf(os.Stderr, "img2p5: %e", err)
 		os.Exit(1)
 	}
 }
 
-func run(inDir, outDir string, threshold, alphaCut int) error {
+func run(inDir, outDir string, gray bool, threshold, alphaCut int) error {
 	entries, err := os.ReadDir(inDir)
 	if err != nil {
 		return err
@@ -70,20 +71,33 @@ func run(inDir, outDir string, threshold, alphaCut int) error {
 		imgName := strings.TrimSuffix(e.Name(), filepath.Ext(e.Name())) + ".pgm"
 		imgs = append(imgs, imgName)
 		dst := filepath.Join(outDir, imgName)
-		if err := convert(src, dst, threshold, alphaCut); err != nil {
+		if err := convert(src, dst, gray, threshold, alphaCut); err != nil {
 			return fmt.Errorf("%s: %w", e.Name(), err)
 		}
 		fmt.Printf("png2p5: %s -> %s\n", src, dst)
 		count++
 	}
 
-	writeEmbeds(outDir, imgs)
+	embName := filepath.Base(outDir)
+	if gray {
+		embName += "_gray"
+	}
+	embName += ".go"
+	writeEmbeds(outDir, embName, imgs)
 
 	fmt.Printf("png2p5: converted %d file(s)\n", count)
 	return nil
 }
 
-func convert(src, dst string, threshold, alphaCut int) error {
+func encodeShade(gray int) byte {
+	level := (gray*32 + 127) / 255 // round(gray/255 * 32) -> 0..32
+	if level >= 32 {
+		return valPaper
+	}
+	return byte(level << 3)
+}
+
+func convert(src, dst string, gray bool, threshold, alphaCut int) error {
 	f, err := os.Open(src)
 	if err != nil {
 		return err
@@ -101,17 +115,26 @@ func convert(src, dst string, threshold, alphaCut int) error {
 	for y := b.Min.Y; y < b.Max.Y; y++ {
 		for x := b.Min.X; x < b.Max.X; x++ {
 			r, g, bl, a := img.At(x, y).RGBA()
+
 			if int(a>>8) < alphaCut {
 				pix = append(pix, valTransparent)
-			} else {
-				// Perceived brighness
-				lum := (299*int(r>>8) + 587*int(g>>8) + 114*int(bl>>8)) / 1000
-				if lum < threshold {
-					pix = append(pix, valInk)
-				} else {
-					pix = append(pix, valPaper)
-				}
+				continue
 			}
+
+			// Perceived brighness
+			lum := (299*int(r>>8) + 587*int(g>>8) + 114*int(bl>>8)) / 1000
+
+			if gray {
+				pix = append(pix, encodeShade(lum))
+				continue
+			}
+
+			if lum < threshold {
+				pix = append(pix, valInk)
+			} else {
+				pix = append(pix, valPaper)
+			}
+
 		}
 	}
 
@@ -133,7 +156,7 @@ func writeP5(path string, w, h int, pix []byte) error {
 	return bw.Flush()
 }
 
-func writeEmbeds(path string, images []string) error {
+func writeEmbeds(path, name string, images []string) error {
 	type Entry struct {
 		VarName  string
 		FileName string
@@ -165,7 +188,6 @@ import (
 var {{.VarName}} string
 {{end}}
 `))
-	name := filepath.Base(path) + ".go"
 
 	tmplPath := filepath.Join(path, name)
 	f, err := os.Create(tmplPath)
