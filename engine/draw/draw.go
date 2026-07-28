@@ -20,21 +20,22 @@ func P(x, y int) Point {
 }
 
 type Draw interface {
-	HLine(x0, x1, y int, on bool)
-	FillTriangle(p0, p1, p2 Point, on bool)
+	Triangle(p0, p1, p2 Point) *TriangleBuilder
 	Sprite(x, y int, spr engine.Sprite, index int, invert bool)
 	Text(x, y int, str string) *TextBuilder
 }
 
 type draw struct {
-	c           engine.Canvas
-	textBuilder *TextBuilder
+	c               engine.Canvas
+	textBuilder     *TextBuilder
+	triangleBuilder *TriangleBuilder
 }
 
 func New(c engine.Canvas) Draw {
 	return &draw{
-		c:           c,
-		textBuilder: NewTextBuilder(&FontCanvas{c: c, ink: false}, &font.Tiny),
+		c:               c,
+		textBuilder:     NewTextBuilder(&FontCanvas{c: c, ink: false}, &font.Tiny),
+		triangleBuilder: NewTriangleBuilder(c),
 	}
 }
 
@@ -77,53 +78,6 @@ func (d *draw) Text(x, y int, str string) *TextBuilder {
 // 	}
 // }
 
-func (d *draw) HLine(x0, x1, y int, on bool) {
-	if x0 > x1 {
-		x0, x1 = x1, x0
-	}
-	for x := x0; x <= x1; x++ {
-		d.c.Set(x, y, on)
-	}
-}
-
-func (d *draw) FillTriangle(p0, p1, p2 Point, on bool) {
-	// sort points by y ascending: (x0,y0) top ... (x2,y2) bottom
-	if p0.Y > p1.Y {
-		p0, p1 = p1, p0
-	}
-	if p0.Y > p2.Y {
-		p0, p2 = p2, p0
-	}
-	if p1.Y > p2.Y {
-		p1, p2 = p2, p1
-	}
-
-	height := p2.Y - p0.Y
-	if height == 0 {
-		return // zero height triangle... just ignore it.
-	}
-
-	firstHeight := p1.Y - p0.Y
-	secondHeight := p2.Y - p1.Y
-
-	for y := p0.Y; y <= p2.Y; y++ {
-		secondHalf := y > p1.Y || p1.Y == p0.Y
-
-		// x0 runs the long edge (v0->v2); x1 runs the current short edge
-		x0 := p0.X + (p2.X-p0.X)*(y-p0.Y)/height
-		var x1 int
-		if secondHalf {
-			x1 = p1.X
-			if secondHeight > 0 {
-				x1 += (p2.X - p1.X) * (y - p1.Y) / secondHeight
-			}
-		} else {
-			x1 = p0.X
-			if firstHeight > 0 {
-				x1 += (p1.X - p0.X) * (y - p0.Y) / firstHeight
-			}
-		}
-
-		d.HLine(x0, x1, y, on)
-	}
+func (d *draw) Triangle(p0, p1, p2 Point) *TriangleBuilder {
+	return d.triangleBuilder.New(p0, p1, p2)
 }
