@@ -52,7 +52,8 @@ func AbsInt(val int) int {
 func (d *draw) Sprite(x, y int, spr engine.Sprite, index int, invert bool) {
 	for i := 0; i < spr.Width(); i++ {
 		for j := 0; j < spr.Height(); j++ {
-			show, on := spr.At(i, j, index)
+			shade := spr.At(i, j, index)
+			show, on := Dither(x+i, y+j, shade)
 			if show {
 				if invert {
 					on = !on

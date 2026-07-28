@@ -4,8 +4,6 @@ import (
 	"errors"
 	"strconv"
 	"strings"
-
-	"github.com/hoani/3310_engine/engine/draw"
 )
 
 type sprite struct {
@@ -15,11 +13,10 @@ type sprite struct {
 	count   int
 }
 
-func (s *sprite) At(i, j, index int) (visible bool, on bool) {
+func (s *sprite) At(i, j, index int) (shade uint8) {
 	index = index % s.count
 	offset := s.count*s.W*j + i + (s.W * index)
-	b := s.Content[offset]
-	return draw.Dither(i, j, uint8(b))
+	return uint8(s.Content[offset])
 }
 
 func (s *sprite) Width() int {

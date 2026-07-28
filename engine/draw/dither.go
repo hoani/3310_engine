@@ -14,6 +14,10 @@ var bayer8 = [8][8]uint8{
 	{63, 31, 55, 23, 61, 29, 53, 21},
 }
 
+func Bayer64(x, y int, coverage uint8) (on bool) {
+	return bayer8[y&7][x&7] <= coverage
+}
+
 func Dither(x, y int, shade uint8) (draw bool, value bool) {
 	if shade == engine.ShadeTransparent {
 		return false, false
@@ -23,5 +27,5 @@ func Dither(x, y int, shade uint8) (draw bool, value bool) {
 	}
 	level := (shade >> 3) & 0x1f
 	inkCoverage := 64 - 2*int(level)
-	return true, int(bayer8[y&7][x&7]) <= inkCoverage
+	return true, Bayer64(x, y, uint8(inkCoverage))
 }

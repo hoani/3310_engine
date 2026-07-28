@@ -18,7 +18,7 @@ type Game interface {
 }
 
 type Sprite interface {
-	At(i, j, index int) (visible bool, on bool)
+	At(i, j, index int) (shade uint8)
 	Width() int
 	Height() int
 	Count() int
