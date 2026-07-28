@@ -45,7 +45,7 @@ func (s *sprite) Count() int {
 }
 
 func SpriteFromP5(raw string) (*sprite, error) {
-	strings.ReplaceAll(raw, "\r", "") // Deals with windows nonsense
+	raw = strings.ReplaceAll(raw, "\r", "") // Deals with windows nonsense
 	parts := strings.Split(raw, "\n")
 	if len(parts) != 4 {
 		return nil, errors.New("invalid file format")
