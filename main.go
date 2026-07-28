@@ -92,9 +92,9 @@ func (g *Game) Draw(canvas engine.Canvas) error {
 		g.draw.Sprite(i*7, 12, g.font, i, !c)
 	}
 
-	g.draw.Text(4, 28, &font.EffortsPro, "Hello World", !c)
-	g.draw.Text(4, 6, &font.Tiny, "Hello World", true)
-	g.draw.Text(g.xpos, g.ypos+32, &font.Tiny, "[0.0]", g.col)
+	g.draw.Text(4, 28, "Hello World").Font(&font.EffortsPro).Draw(c)
+	g.draw.Text(4, 6, "Hello Tiny").Draw(true)
+	g.draw.Text(g.xpos, g.ypos+32, "[0.0]").Draw(g.col)
 
 	return nil
 }

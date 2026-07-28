@@ -4,7 +4,7 @@ import (
 	"image/color"
 
 	"github.com/hoani/3310_engine/engine"
-	"tinygo.org/x/tinyfont"
+	"github.com/hoani/3310_engine/font"
 )
 
 var PixelOff = color.RGBA{0, 0, 0, 255}
@@ -23,18 +23,18 @@ type Draw interface {
 	HLine(x0, x1, y int, on bool)
 	FillTriangle(p0, p1, p2 Point, on bool)
 	Sprite(x, y int, spr engine.Sprite, index int, invert bool)
-	Text(x, y int, font tinyfont.Fonter, str string, on bool)
+	Text(x, y int, str string) *TextBuilder
 }
 
 type draw struct {
-	c  engine.Canvas
-	fc *FontCanvas
+	c           engine.Canvas
+	textBuilder *TextBuilder
 }
 
 func New(c engine.Canvas) Draw {
 	return &draw{
-		c:  c,
-		fc: &FontCanvas{c: c, ink: false},
+		c:           c,
+		textBuilder: NewTextBuilder(&FontCanvas{c: c, ink: false}, &font.Tiny),
 	}
 }
 
@@ -59,10 +59,8 @@ func (d *draw) Sprite(x, y int, spr engine.Sprite, index int, invert bool) {
 	}
 }
 
-func (d *draw) Text(x, y int, font tinyfont.Fonter, str string, on bool) {
-	// Note: we use a font canvas to set the color because the generated Fonter ignores our color.
-	d.fc.SetInk(on)
-	tinyfont.WriteLine(d.fc, font, int16(x), int16(y), str, PixelOn)
+func (d *draw) Text(x, y int, str string) *TextBuilder {
+	return d.textBuilder.New(x, y, str)
 }
 
 // func (d *Draw) Line(x0, y0, x1, y1 int, w int, c bool) {
