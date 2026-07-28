@@ -99,7 +99,10 @@ func (g *Game) Draw(canvas engine.Canvas) error {
 	// 	g.draw.Sprite(i*7, 12, g.font, i, !c)
 	// }
 
-	g.draw.Sprite(0, 0, g.sphere, i, !c)
+	// g.draw.Sprite(0, 0, g.sphere, i, !c)
+
+	g.draw.Circle(draw.P(16, 16), 12).Draw(true)
+	g.draw.Circle(draw.P(16, 16), 5).Draw(false)
 
 	g.draw.Text(52, 28, "Hello\nWorld").Font(&font.EffortsPro).Draw(c)
 	g.draw.Text(48, 6, "Hello Tiny").Draw(true)

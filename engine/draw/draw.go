@@ -21,6 +21,7 @@ func P(x, y int) Point {
 
 type Draw interface {
 	Triangle(p0, p1, p2 Point) *TriangleBuilder
+	Circle(center Point, radius int16) *CircleBuilder
 	Sprite(x, y int, spr engine.Sprite, index int, invert bool)
 	Text(x, y int, str string) *TextBuilder
 }
@@ -29,6 +30,7 @@ type draw struct {
 	c               engine.Canvas
 	textBuilder     *TextBuilder
 	triangleBuilder *TriangleBuilder
+	circleBuilder   *CircleBuilder
 }
 
 func New(c engine.Canvas) Draw {
@@ -36,6 +38,7 @@ func New(c engine.Canvas) Draw {
 		c:               c,
 		textBuilder:     NewTextBuilder(&FontCanvas{c: c, ink: false}, &font.Tiny),
 		triangleBuilder: NewTriangleBuilder(c),
+		circleBuilder:   NewCircleBuilder(c),
 	}
 }
 
@@ -54,6 +57,7 @@ func (d *draw) Sprite(x, y int, spr engine.Sprite, index int, invert bool) {
 				if invert {
 					on = !on
 				}
+
 				d.c.Set(x+i, y+j, on)
 			}
 		}
@@ -80,4 +84,8 @@ func (d *draw) Text(x, y int, str string) *TextBuilder {
 
 func (d *draw) Triangle(p0, p1, p2 Point) *TriangleBuilder {
 	return d.triangleBuilder.New(p0, p1, p2)
+}
+
+func (d *draw) Circle(center Point, radius int16) *CircleBuilder {
+	return d.circleBuilder.New(center, radius)
 }
