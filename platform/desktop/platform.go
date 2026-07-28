@@ -136,6 +136,9 @@ func handleError(err error) {
 
 func Run(game engine.Game) {
 
+	cmd := NewKeypad()
+	game.Setup(cmd)
+
 	ebiten.SetWindowSize(840, 480)
 	ebiten.SetWindowTitle("Hoani's World")
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)

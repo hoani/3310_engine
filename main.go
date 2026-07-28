@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/hoani/3310_engine/engine"
+	"github.com/hoani/3310_engine/engine/command"
 	"github.com/hoani/3310_engine/engine/draw"
 	"github.com/hoani/3310_engine/font"
 	"github.com/hoani/3310_engine/platform"
@@ -9,9 +10,17 @@ import (
 )
 
 type Game struct {
-	count int
-	draw  draw.Draw
-	font  engine.Sprite
+	count  int
+	draw   draw.Draw
+	font   engine.Sprite
+	keypad *command.Command[engine.Key]
+	ypos   int
+	xpos   int
+	col    bool
+}
+
+func (g *Game) Setup(keypad *command.Command[engine.Key]) {
+	g.keypad = keypad
 }
 
 func (g *Game) Fps() int {
@@ -19,7 +28,24 @@ func (g *Game) Fps() int {
 }
 
 func (g *Game) Update() error {
+	g.keypad.Update()
 	g.count++
+
+	if g.keypad.Pressed(engine.K2) {
+		g.ypos -= 4
+	}
+	if g.keypad.Pressed(engine.K8) {
+		g.ypos += 4
+	}
+	if g.keypad.Pressed(engine.K4) {
+		g.xpos -= 4
+	}
+	if g.keypad.Pressed(engine.K6) {
+		g.xpos += 4
+	}
+	if g.keypad.Pressed(engine.K5) {
+		g.col = !g.col
+	}
 	return nil
 }
 
@@ -60,13 +86,15 @@ func (g *Game) Draw(canvas engine.Canvas) error {
 	// 	g.draw.FillTriangle(p0, p1, p2, c)
 	// }
 
+	canvas.Clear()
+
 	for i := 0; i < 26; i++ {
 		g.draw.Sprite(i*7, 12, g.font, i, !c)
 	}
 
 	g.draw.Text(4, 28, &font.EffortsPro, "Hello World", !c)
 	g.draw.Text(4, 6, &font.Tiny, "Hello World", true)
-	g.draw.Text(4, 12, &font.Tiny, "Hello World", false)
+	g.draw.Text(g.xpos, g.ypos+32, &font.Tiny, "[0.0]", g.col)
 
 	return nil
 }

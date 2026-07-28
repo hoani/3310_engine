@@ -1,15 +1,16 @@
-package draw
+package draw_test
 
 import (
 	"testing"
 
+	"github.com/hoani/3310_engine/engine/draw"
 	"github.com/hoani/3310_engine/platform/desktop"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestDrawHline(t *testing.T) {
 	c := desktop.NewCanvas()
-	d := New(c)
+	d := draw.New(c)
 
 	d.HLine(3, 5, 0, true)
 
@@ -22,9 +23,9 @@ func TestDrawHline(t *testing.T) {
 
 func TestDrawTriangle(t *testing.T) {
 	c := desktop.NewCanvas()
-	d := New(c)
+	d := draw.New(c)
 
-	d.FillTriangle(P(0, 0), P(3, 3), P(0, 3), true)
+	d.FillTriangle(draw.P(0, 0), draw.P(3, 3), draw.P(0, 3), true)
 
 	assert.Equal(t, c.Get(0, 0), true)
 	assert.Equal(t, c.Get(3, 3), true)
