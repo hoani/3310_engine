@@ -18,14 +18,15 @@ type Game struct {
 	xpos   int
 	col    bool
 	sphere engine.Sprite
+	info   *engine.GameInfo
 }
 
 func (g *Game) Setup(keypad *command.Command[engine.Key]) {
 	g.keypad = keypad
 }
 
-func (g *Game) Fps() int {
-	return 60
+func (g *Game) Info() *engine.GameInfo {
+	return g.info
 }
 
 func (g *Game) Update() error {
@@ -68,7 +69,7 @@ func (g *Game) Draw(canvas engine.Canvas) error {
 
 	// if g.count%120 == 0 {
 
-	// alpha := math.Pi * float64(g.count) / float64(10*g.Fps())
+	// alpha := math.Pi * float64(g.count) / float64(10*g.Info().Fps)
 	// alpha := math.Pi / 6
 	// s0a := math.Sin(alpha)
 	// c0a := math.Cos(alpha)
@@ -116,5 +117,5 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	platform.Run(&Game{sphere: sphere})
+	platform.Run(&Game{sphere: sphere, info: &engine.GameInfo{Debug: true, Fps: 60}})
 }

@@ -31,7 +31,7 @@ func New(game engine.Game, lcd *pcd8544.Device, led machine.Pin, keypad *Keypad)
 }
 
 func (p *Platform) Run() error {
-	period := time.Second / time.Duration(p.game.Fps())
+	period := time.Second / time.Duration(p.game.Info().Fps)
 	for {
 		start := time.Now()
 		p.keypad.Update()
