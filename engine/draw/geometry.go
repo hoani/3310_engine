@@ -1,6 +1,8 @@
 package draw
 
-import "github.com/hoani/3310_engine/engine"
+import (
+	"github.com/hoani/3310_engine/engine"
+)
 
 type shapeBuilder struct {
 	c     engine.Canvas
@@ -11,6 +13,45 @@ func newShapeBuilder(c engine.Canvas) shapeBuilder {
 	return shapeBuilder{
 		c:     c,
 		shade: engine.ShadeBlack,
+	}
+}
+
+type RectangleBuilder struct {
+	shapeBuilder
+	p0 Point
+	p1 Point
+}
+
+func NewRectangleBuilder(c engine.Canvas) *RectangleBuilder {
+	return &RectangleBuilder{
+		shapeBuilder: newShapeBuilder(c),
+	}
+}
+
+func (b *RectangleBuilder) New(p0, p1 Point) *RectangleBuilder {
+	b.p0, b.p1 = p0, p1
+	if b.p0.X > b.p1.X {
+		b.p1.X, b.p0.X = b.p0.X, b.p1.X
+	}
+	if b.p0.Y > b.p1.Y {
+		b.p1.Y, b.p0.Y = b.p0.Y, b.p1.Y
+	}
+	return b
+}
+
+func (b *RectangleBuilder) Draw(on bool) {
+	shade := engine.ShadeBlack
+	if !on {
+		shade = engine.ShadeWhite
+	}
+	b.DrawShade(shade)
+}
+
+func (b *RectangleBuilder) DrawShade(shade uint8) {
+	for x := b.p0.X; x < b.p1.X; x++ {
+		for y := b.p0.Y; y < b.p1.Y; y++ {
+			drawDither(b.c, x, y, shade)
+		}
 	}
 }
 

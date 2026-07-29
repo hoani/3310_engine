@@ -107,6 +107,9 @@ func (g *Game) Draw(canvas engine.Canvas) error {
 
 	g.draw.Text(52, 28, "Hello\nWorld").Font(&font.EffortsPro).Draw(c)
 	g.draw.Text(48, 6, "Hello Tiny").Draw(true)
+
+	g.draw.Rectangle(g.xpos-4, g.ypos+23, g.xpos+18, g.ypos+39).DrawShade(0x88)
+	g.draw.Rectangle(g.xpos-1, g.ypos+27, g.xpos+15, g.ypos+34).Draw(!g.col)
 	g.draw.Text(g.xpos, g.ypos+32, "[0.0]").Draw(g.col)
 
 	return nil
