@@ -8,6 +8,7 @@ import (
 	_ "image/png"
 	"math"
 	"os"
+	"strings"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
@@ -69,6 +70,14 @@ type Platform struct {
 	ratio     float64
 	resized   bool
 	debug     *Debug
+}
+
+func (p *Platform) Console(format string, args ...any) {
+	fmt.Printf(format, args...)
+
+	if !strings.HasSuffix(format, "\n") {
+		fmt.Printf("\n")
+	}
 }
 
 func (p *Platform) Update() error {
@@ -184,13 +193,14 @@ func handleError(err error) {
 func Run(game engine.Game) {
 
 	cmd := NewKeypad()
-	game.Setup(cmd)
 
 	ebiten.SetWindowSize(840, 480)
 	ebiten.SetWindowTitle("Hoani's World")
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
 
 	p := &Platform{game: game, colors: NewGameColors(), canvas: NewCanvas(), shadowing: ebiten.NewImage(84, 48), scale: 10.0, ratio: 1.25}
+
+	game.Setup(cmd, p)
 
 	if game.Info().Debug {
 		proc, err := process.NewProcess(int32(os.Getpid()))
