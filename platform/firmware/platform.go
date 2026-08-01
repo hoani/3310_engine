@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"image/color"
 	"machine"
+	"runtime"
+	"strings"
 	"time"
 
 	"github.com/hoani/3310_engine/engine"
@@ -30,37 +32,55 @@ func New(game engine.Game, lcd *pcd8544.Device, led machine.Pin, keypad *Keypad)
 	}
 }
 
+func (p *Platform) Console(format string, args ...any) {
+	if len(args) == 0 {
+		fmt.Printf(format)
+	} else {
+		fmt.Printf(format, args)
+	}
+
+	if !strings.HasSuffix(format, "\n") {
+		fmt.Printf("\n")
+	}
+
+}
+
 func (p *Platform) Run() error {
+	var m runtime.MemStats
+	count := 0
+	info := p.game.Info()
 	period := time.Second / time.Duration(p.game.Info().Fps)
 	for {
+		count++
 		start := time.Now()
 		p.keypad.Update()
 		if err := p.game.Update(); err != nil {
 			return err
 		}
 		dStart := time.Now()
+		if err := p.game.Draw(p.canvas); err != nil {
+			return err
+		}
+		lcdStart := time.Now()
+
 		if err := p.Draw(); err != nil {
 			return err
 		}
-		dDur := time.Since(dStart)
-		dur := time.Since(start)
-		rem := period - dur
-		fmt.Printf("cpu %d%%, draw %d%% \n", 100*rem/period, 100*dDur/dur)
-		// fmt.Printf("cpu %d%%, draw %d%% \n%t %t %t\n%t %t %t\n%t %t %t\n%t %t %t\n\n", 100*rem/period, 100*dDur/dur,
-		// 	p.keypad.Get(engine.K1), p.keypad.Get(engine.K2), p.keypad.Get(engine.K3),
-		// 	p.keypad.Get(engine.K4), p.keypad.Get(engine.K5), p.keypad.Get(engine.K6),
-		// 	p.keypad.Get(engine.K7), p.keypad.Get(engine.K8), p.keypad.Get(engine.K9),
-		// 	p.keypad.Get(engine.KStar), p.keypad.Get(engine.K0), p.keypad.Get(engine.KHash),
-		// )
-		rem = period - time.Since(start)
+		if info.Debug && (count%16) == 0 {
+			dDur := lcdStart.Sub(dStart)
+			lcdDur := time.Since(lcdStart)
+			dur := time.Since(start)
+			rem := period - dur
+			runtime.ReadMemStats(&m)
+			fmt.Printf("cpu %d%%, draw %d%% lcd %d%% mem %d/%d\n", 100*rem/period, 100*dDur/dur, 100*lcdDur/dur, m.Alloc, m.Sys)
+		}
+		rem := period - time.Since(start)
 		time.Sleep(rem)
 	}
 }
 
 func (p *Platform) Draw() error {
-	if err := p.game.Draw(p.canvas); err != nil {
-		return err
-	}
+
 	return p.lcd.Display()
 }
 
@@ -101,9 +121,9 @@ func Run(game engine.Game) {
 	keypad, cmd := NewKeypad([3]machine.Pin{machine.GP3, machine.GP4, machine.GP5},
 		[4]machine.Pin{machine.GP6, machine.GP7, machine.GP8, machine.GP9})
 
-	game.Setup(cmd)
-
 	p := New(game, d, led, keypad)
+
+	game.Setup(cmd, p)
 
 	c := color.RGBA{255, 255, 255, 255}
 

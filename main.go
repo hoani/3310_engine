@@ -14,6 +14,7 @@ type Game struct {
 	count  int
 	draw   draw.Draw
 	keypad *command.Command[engine.Key]
+	debug  engine.Debug
 	ypos   int
 	xpos   int
 	col    bool
@@ -21,8 +22,9 @@ type Game struct {
 	info   *engine.GameInfo
 }
 
-func (g *Game) Setup(keypad *command.Command[engine.Key]) {
+func (g *Game) Setup(keypad *command.Command[engine.Key], debug engine.Debug) {
 	g.keypad = keypad
+	g.debug = debug
 }
 
 func (g *Game) Info() *engine.GameInfo {
@@ -47,6 +49,7 @@ func (g *Game) Update() error {
 	}
 	if g.keypad.Pressed(engine.K5) {
 		g.col = !g.col
+		g.debug.Console("Switched!")
 	}
 	return nil
 }

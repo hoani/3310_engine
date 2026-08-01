@@ -10,13 +10,17 @@ type Canvas interface {
 	Get(x, y int) bool
 }
 
+type Debug interface {
+	Console(format string, args ...any)
+}
+
 type GameInfo struct {
 	Fps   int
 	Debug bool
 }
 
 type Game interface {
-	Setup(cmd *command.Command[Key])
+	Setup(cmd *command.Command[Key], debug Debug)
 	Info() *GameInfo
 	Update() error
 	Draw(canvas Canvas) error
