@@ -6,34 +6,47 @@ import (
 	"image/color"
 
 	"github.com/hoani/3310_engine/engine"
-	"github.com/hoani/3310_engine/engine/draw"
 	"tinygo.org/x/drivers/pcd8544"
 )
 
 type canvas struct {
 	device *pcd8544.Device
+	buffer []byte
+	w, h   int
 }
 
 func NewCanvas(device *pcd8544.Device) engine.Canvas {
+	w, h := device.Size()
 	return &canvas{
 		device: device,
+		buffer: make([]byte, w*h/8),
+		w:      int(w),
+		h:      int(h),
 	}
 }
 
 func (c *canvas) Clear() {
-	c.device.ClearBuffer()
+	clear(c.buffer)
 }
 
 func (c *canvas) Set(x, y int, val bool) {
-	if val {
-		c.device.SetPixel(int16(x), int16(y), draw.PixelOn)
+	if x < 0 || x >= c.w || y < 0 || y >= c.h {
+		return
+	}
+	byteIndex := x + (y/8)*c.w
+	if !val {
+		c.buffer[byteIndex] |= 1 << uint8(y%8)
 	} else {
-		c.device.SetPixel(int16(x), int16(y), draw.PixelOff)
+		c.buffer[byteIndex] &^= 1 << uint8(y%8)
 	}
 }
 
 func (c *canvas) Get(x, y int) bool {
-	return c.device.GetPixel(int16(x), int16(y))
+	if x < 0 || x >= c.w || y < 0 || y >= c.h {
+		return false
+	}
+	byteIndex := x + (y/8)*c.w
+	return (c.buffer[byteIndex] >> uint8(y%8) & 0x1) == 1
 }
 
 func (c *canvas) Width() int {
@@ -51,14 +64,17 @@ func (c *canvas) Size() (x, y int16) {
 }
 
 func (c *canvas) SetPixel(x, y int16, col color.RGBA) {
+	set := true
 	if col.R == 0 && col.G == 0 && col.B == 0 {
-		col = draw.PixelOff
-	} else {
-		col = draw.PixelOn
+		set = false
 	}
-	c.device.SetPixel(x, y, col)
+	c.Set(int(x), int(y), set)
 }
 
 func (c *canvas) Display() error {
-	return c.Display()
+	if err := c.device.SetBuffer(c.buffer); err != nil {
+		return err
+	}
+	return c.device.Display()
+
 }
