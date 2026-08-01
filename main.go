@@ -58,16 +58,10 @@ func (g *Game) Draw(canvas engine.Canvas) error {
 	if g.draw == nil {
 		g.draw = draw.New(canvas)
 	}
-
-	i := g.count % canvas.Width()
-	j := (g.count / canvas.Width()) % canvas.Height()
-
 	c := true
 	if g.count/(canvas.Width()*canvas.Height())%2 == 1 {
 		c = false
 	}
-	canvas.Set(i, j, c)
-
 	canvas.Clear()
 
 	// if g.count%120 == 0 {

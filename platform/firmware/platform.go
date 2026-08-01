@@ -49,6 +49,8 @@ func (p *Platform) Run() error {
 	var m runtime.MemStats
 	count := 0
 	info := p.game.Info()
+	memFloor := uint64(0)
+	memLast := uint64(0)
 	period := time.Second / time.Duration(p.game.Info().Fps)
 	for {
 		count++
@@ -66,12 +68,19 @@ func (p *Platform) Run() error {
 		if err := p.Draw(); err != nil {
 			return err
 		}
-		if info.Debug && (count%16) == 0 {
-			dDur := lcdStart.Sub(dStart)
-			lcdDur := time.Since(lcdStart)
-			dur := time.Since(start)
+		if info.Debug {
+			if (count % (5 * 60)) == 0 {
+				dDur := lcdStart.Sub(dStart)
+				lcdDur := time.Since(lcdStart)
+				dur := time.Since(start)
+
+				fmt.Printf("cpu %d%%, draw %d%% lcd %d%% mem %d %d/%d\n", 100*dur/period, 100*dDur/dur, 100*lcdDur/dur, memFloor, m.Alloc, m.Sys)
+			}
 			runtime.ReadMemStats(&m)
-			fmt.Printf("cpu %d%%, draw %d%% lcd %d%% mem %d/%d\n", 100*dur/period, 100*dDur/dur, 100*lcdDur/dur, m.Alloc, m.Sys)
+			if memLast > m.Alloc || memLast == 0 {
+				memFloor = m.Alloc
+			}
+			memLast = m.Alloc
 		}
 		rem := period - time.Since(start)
 		time.Sleep(rem)
