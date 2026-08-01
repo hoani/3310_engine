@@ -1,0 +1,24 @@
+====================================================================================================================
+Efforts Pro
+=================================
+This is a font created by Evee Sompx. He is an incredible pixel font creator and I would highly recommend you check 
+out his work! This font and many others are available on his patreon.
+I have recolored the sprite strip and spaced the characters for ease of import from sprite.
+
+====================================================================================================================
+DETAILS 
+=================================
+
+Sprite sheet spacing is 7 x 11
+Character Order:ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,;:?!-_~#"'&()[]{}^|`/\@°+=*%€$£¢<>©®ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØŒÙÚÛÜÝÞàáâãäåæçèéêëìíîïðñòóôõöøœùúûüýþßÿ¿¡
+
+Link to the font: https://www.patreon.com/posts/efforts-pro-22707284
+====================================================================================================================
+CREDIT
+=================================
+Eeve Somepx
+
+https://twitter.com/somepx
+https://somepx.itch.io/
+https://www.patreon.com/somepx
+info@somepx.com

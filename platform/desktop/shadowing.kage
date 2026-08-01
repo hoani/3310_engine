@@ -2,7 +2,8 @@
 
 package main
 
-var Tau float // Time constant, unit of 1/frames
+var TauRise float // Time constant, unit of 1/frames
+var TauFall float // Time constant, unit of 1/frames
 
 func Fragment(dstPos vec4, srcPos vec2, _ vec4) vec4 {
 	var next = imageSrc0At(srcPos)
@@ -11,10 +12,13 @@ func Fragment(dstPos vec4, srcPos vec2, _ vec4) vec4 {
 	var PixelOff = vec4(0.0, 0.0, 0.0, 1.0)
 
 	if next.r == 0.0 {
-		if previous.r < 1/32 {
+		if previous.r < 1.0/32.0 {
 			return PixelOff
 		}
-		return mix(previous, PixelOff, Tau)
+		return mix(previous, PixelOff, TauFall)
 	}
-	return PixelOn
+	if previous.r > 31.0/32.0 {
+		return PixelOn
+	}
+	return mix(previous, PixelOn, TauRise)
 }

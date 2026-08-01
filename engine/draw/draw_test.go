@@ -8,24 +8,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestDrawHline(t *testing.T) {
-	c := desktop.NewCanvas()
-	d := draw.New(c)
-
-	d.HLine(3, 5, 0, true)
-
-	require.Equal(t, c.Get(2, 0), false)
-	require.Equal(t, c.Get(3, 0), true)
-	require.Equal(t, c.Get(5, 0), true)
-	require.Equal(t, c.Get(6, 0), false)
-	require.Equal(t, c.Get(5, 1), false)
-}
-
 func TestDrawTriangle(t *testing.T) {
 	c := desktop.NewCanvas()
 	d := draw.New(c)
 
-	d.FillTriangle(draw.P(0, 0), draw.P(3, 3), draw.P(0, 3), true)
+	d.Triangle(draw.P(0, 0), draw.P(3, 3), draw.P(0, 3)).Draw(true)
 
 	require.Equal(t, c.Get(0, 0), true)
 	require.Equal(t, c.Get(3, 3), true)

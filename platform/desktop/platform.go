@@ -9,6 +9,7 @@ import (
 	"math"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
@@ -70,6 +71,7 @@ type Platform struct {
 	ratio     float64
 	resized   bool
 	debug     *Debug
+	lastDraw  time.Time
 }
 
 func (p *Platform) Console(format string, args ...any) {
@@ -97,6 +99,12 @@ func (p *Platform) Update() error {
 
 func (p *Platform) Draw(screen *ebiten.Image) {
 
+	// Very pendantic, but ensures consistent shadowing with varying screen FPS.
+	dt := time.Since(p.lastDraw).Seconds()
+	p.lastDraw = time.Now()
+	fps := float64(ebiten.ActualFPS())
+	dt = math.Min(2.0/fps, math.Max(dt, 0.5/fps)) // clamp to ride through stalls.
+
 	c := ebiten.NewImageFromImage(p.canvas.image)
 
 	prev := ebiten.NewImageFromImage(p.shadowing)
@@ -104,8 +112,10 @@ func (p *Platform) Draw(screen *ebiten.Image) {
 	opts.Images[0] = c
 	opts.Images[1] = prev
 	opts.Uniforms = map[string]any{
-		// falltime's 125ms, one fall time is techncially 5*tau so 3.0/0.125 1/s * 1.0/60 s/frames
-		"Tau": 4.0 / (64.0 * 0.125), // rounded frames up to 64.0 for better math
+		// Rise time tau is around 60ms, 1/16 is close enough, so 1.0/0.0625 * 1/s * 1.0/60 s/frames
+		"TauRise": 1.0 - math.Exp(-dt/0.060), // rounded frames up to 64.0 for better math
+		// falltime's tau is 125ms, one fall time is 1.0/0.125 * 1/s * 1.0/60 s/frames
+		"TauFall": 1.0 - math.Exp(-dt/0.125), // rounded frames up to 64.0 for better math
 	}
 
 	p.shadowing.DrawRectShader(p.canvas.Width(), p.canvas.Height(), p.shader.shadowing, opts)
@@ -198,7 +208,7 @@ func Run(game engine.Game) {
 	ebiten.SetWindowTitle("Hoani's World")
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
 
-	p := &Platform{game: game, colors: NewGameColors(), canvas: NewCanvas(), shadowing: ebiten.NewImage(84, 48), scale: 10.0, ratio: 1.25}
+	p := &Platform{game: game, colors: NewGameColors(), canvas: NewCanvas(), shadowing: ebiten.NewImage(84, 48), scale: 10.0, ratio: 1.25, lastDraw: time.Now()}
 
 	game.Setup(cmd, p)
 
