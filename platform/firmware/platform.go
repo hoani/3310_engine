@@ -16,7 +16,7 @@ import (
 
 type Platform struct {
 	game   engine.Game
-	canvas engine.Canvas
+	canvas *canvas
 	led    machine.Pin
 	lcd    *pcd8544.Device
 	keypad *Keypad
@@ -70,9 +70,8 @@ func (p *Platform) Run() error {
 			dDur := lcdStart.Sub(dStart)
 			lcdDur := time.Since(lcdStart)
 			dur := time.Since(start)
-			rem := period - dur
 			runtime.ReadMemStats(&m)
-			fmt.Printf("cpu %d%%, draw %d%% lcd %d%% mem %d/%d\n", 100*rem/period, 100*dDur/dur, 100*lcdDur/dur, m.Alloc, m.Sys)
+			fmt.Printf("cpu %d%%, draw %d%% lcd %d%% mem %d/%d\n", 100*dur/period, 100*dDur/dur, 100*lcdDur/dur, m.Alloc, m.Sys)
 		}
 		rem := period - time.Since(start)
 		time.Sleep(rem)
@@ -80,8 +79,7 @@ func (p *Platform) Run() error {
 }
 
 func (p *Platform) Draw() error {
-
-	return p.lcd.Display()
+	return p.canvas.Display()
 }
 
 func Run(game engine.Game) {
@@ -112,8 +110,6 @@ func Run(game engine.Game) {
 		Width:  84,
 		Height: 48,
 	})
-
-	d.ClearDisplay()
 
 	led := machine.LED
 	led.Configure(machine.PinConfig{Mode: machine.PinOutput})

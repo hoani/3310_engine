@@ -15,7 +15,9 @@ type canvas struct {
 	w, h   int
 }
 
-func NewCanvas(device *pcd8544.Device) engine.Canvas {
+var _ engine.Canvas = &canvas{}
+
+func NewCanvas(device *pcd8544.Device) *canvas {
 	w, h := device.Size()
 	return &canvas{
 		device: device,
@@ -34,7 +36,7 @@ func (c *canvas) Set(x, y int, val bool) {
 		return
 	}
 	byteIndex := x + (y/8)*c.w
-	if !val {
+	if val {
 		c.buffer[byteIndex] |= 1 << uint8(y%8)
 	} else {
 		c.buffer[byteIndex] &^= 1 << uint8(y%8)
@@ -65,7 +67,7 @@ func (c *canvas) Size() (x, y int16) {
 
 func (c *canvas) SetPixel(x, y int16, col color.RGBA) {
 	set := true
-	if col.R == 0 && col.G == 0 && col.B == 0 {
+	if col.R != 0 || col.G != 0 || col.B != 0 {
 		set = false
 	}
 	c.Set(int(x), int(y), set)
@@ -76,5 +78,4 @@ func (c *canvas) Display() error {
 		return err
 	}
 	return c.device.Display()
-
 }

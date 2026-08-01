@@ -103,7 +103,7 @@ func (g *Game) Draw(canvas engine.Canvas) error {
 	// 	g.draw.Sprite(i*7, 12, g.font, i, !c)
 	// }
 
-	g.draw.Sprite((g.count)%64, 0, g.sphere, i, !c)
+	g.draw.Sprite((g.count)%64, 0, g.sphere, 0, !c)
 
 	// g.draw.Circle(draw.P(16, 16), 12).Draw(true)
 	// g.draw.Circle(draw.P(16, 16), 5).Draw(false)
