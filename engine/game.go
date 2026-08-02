@@ -20,17 +20,10 @@ type GameInfo struct {
 }
 
 type Game interface {
-	Setup(cmd *command.Command[Key], debug Debug)
+	Setup(cmd *command.Command[Key], snd SoundPlayer, debug Debug)
 	Info() *GameInfo
 	Update() error
 	Draw(canvas Canvas) error
-}
-
-type Sprite interface {
-	At(i, j, index int) (shade uint8)
-	Width() int
-	Height() int
-	Count() int
 }
 
 type Key int

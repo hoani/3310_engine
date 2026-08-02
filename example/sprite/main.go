@@ -19,7 +19,7 @@ type Game struct {
 	info    *engine.GameInfo
 }
 
-func (g *Game) Setup(keypad *command.Command[engine.Key], debug engine.Debug) {
+func (g *Game) Setup(keypad *command.Command[engine.Key], snd engine.SoundPlayer, debug engine.Debug) {
 	g.debug = debug
 }
 

@@ -72,6 +72,7 @@ type Platform struct {
 	resized   bool
 	debug     *Debug
 	lastDraw  time.Time
+	snd       *SoundPlayer
 }
 
 func (p *Platform) Console(format string, args ...any) {
@@ -94,6 +95,8 @@ func (p *Platform) Update() error {
 			p.debug.cpu = c/128.0 + p.debug.cpu*127.0/128.0
 		}
 	}
+	// p.snd.Update()
+
 	return p.game.Draw(p.canvas) // This gets done here because we don't want to miss frames.
 }
 
@@ -208,9 +211,12 @@ func Run(game engine.Game) {
 	ebiten.SetWindowTitle("Hoani's World")
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
 
-	p := &Platform{game: game, colors: NewGameColors(), canvas: NewCanvas(), shadowing: ebiten.NewImage(84, 48), scale: 10.0, ratio: 1.25, lastDraw: time.Now()}
+	snd, err := NewSoundPlayer()
+	handleError(err)
 
-	game.Setup(cmd, p)
+	p := &Platform{game: game, colors: NewGameColors(), canvas: NewCanvas(), shadowing: ebiten.NewImage(84, 48), scale: 10.0, ratio: 1.25, lastDraw: time.Now(), snd: snd}
+
+	game.Setup(cmd, snd, p)
 
 	if game.Info().Debug {
 		proc, err := process.NewProcess(int32(os.Getpid()))
@@ -223,7 +229,6 @@ func Run(game engine.Game) {
 		}
 	}
 
-	var err error
 	p.shader.shadowing, err = ebiten.NewShader(Shadowing_kage)
 	handleError(err)
 
