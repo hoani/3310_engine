@@ -4,6 +4,8 @@ import (
 	"github.com/hoani/3310_engine/engine"
 	"github.com/hoani/3310_engine/engine/command"
 	"github.com/hoani/3310_engine/engine/draw"
+	"github.com/hoani/3310_engine/engine/sound"
+	"github.com/hoani/3310_engine/engine/sound/note"
 	"github.com/hoani/3310_engine/example/snd/sound/music"
 	"github.com/hoani/3310_engine/example/text/font"
 	"github.com/hoani/3310_engine/platform"
@@ -17,6 +19,7 @@ type Game struct {
 	col   bool
 	info  *engine.GameInfo
 	tune  engine.Sound
+	sfx   engine.Sound
 }
 
 func (g *Game) Setup(keypad *command.Command[engine.Key], snd engine.SoundPlayer, debug engine.Debug) {
@@ -32,8 +35,11 @@ func (g *Game) Update() error {
 	g.count++
 
 	if (g.count % 300) == 60 {
-		g.snd.Stop()
 		g.snd.Play(g.tune)
+	}
+
+	if (g.count % 250) == 0 {
+		g.snd.Play(g.sfx)
 	}
 
 	return nil
@@ -57,7 +63,7 @@ func (g *Game) Draw(canvas engine.Canvas) error {
 
 func main() {
 
-	// tune := sound.Sound(10, sound.Note(note.C4, 0xFF, 8), sound.None(8), sound.Note(note.A4, 0xFF, 16), sound.None(8))
+	sfx := sound.Sound(10, sound.Note(note.C4, 0xFF, 8), sound.None(8), sound.Note(note.A4, 0xFF, 16), sound.None(8))
 
-	platform.Run(&Game{info: &engine.GameInfo{Debug: true, Fps: 60}, tune: music.SoundMusicSong})
+	platform.Run(&Game{info: &engine.GameInfo{Debug: true, Fps: 60}, tune: music.Song, sfx: sfx})
 }

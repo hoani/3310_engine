@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"io"
 	"math"
+	"sync"
 	"time"
 
 	"github.com/ebitengine/oto/v3"
@@ -20,7 +21,8 @@ type SoundPlayer struct {
 	// Oto player
 	ctx    *oto.Context
 	player *oto.Player
-	buffer *bytes.Buffer
+	// Source
+	src *source
 	// Notes
 	filters []*biquad
 	notes   [note.Total]*voice
@@ -40,7 +42,7 @@ func NewSoundPlayer() (*SoundPlayer, error) {
 	p := &SoundPlayer{
 		ctx:     ctx,
 		filters: []*biquad{newBandpass(3442, 1.63), newBandpass(5411, 9.75)},
-		buffer:  bytes.NewBuffer([]byte{}),
+		src:     &source{},
 	}
 
 	for i := range p.notes {
@@ -48,29 +50,27 @@ func NewSoundPlayer() (*SoundPlayer, error) {
 		p.notes[i] = newVoice(float64(freq), p.filters)
 	}
 
+	p.player = ctx.NewPlayer(p.src)
+	p.player.Play()
+
 	return p, nil
 }
 
-func (p *SoundPlayer) stop() {
-	if p.player != nil {
-		p.buffer.Reset()
-		p.player = nil
-	}
-}
-
 func (p *SoundPlayer) Play(s engine.Sound) {
-	p.stop()
+	var buf bytes.Buffer
 	s.Reset()
+	for _, filter := range p.filters {
+		filter.reset()
+	}
 	for !s.Done() {
 		n := s.Next()
-		p.notes[n.Index].Generate(n.Duration, n.Amplitude, p.buffer)
+		p.notes[n.Index].Generate(n.Duration, n.Amplitude, &buf)
 	}
-	p.player = p.ctx.NewPlayer(p.buffer)
-	p.player.Play()
+	p.src.set(buf.Bytes())
 }
 
 func (p *SoundPlayer) Stop() {
-	p.stop()
+	p.src.set(nil)
 }
 
 type biquad struct {
@@ -94,6 +94,8 @@ func (f *biquad) process(x float64) float64 {
 	return y
 }
 
+func (f *biquad) reset() { f.x1, f.x2, f.y1, f.y2 = 0, 0, 0, 0 }
+
 type voice struct {
 	freq    float64
 	filters []*biquad
@@ -114,10 +116,10 @@ func polyBlep(t, dt float64) float64 {
 		t /= dt
 		return t + t - t*t - 1
 	}
-	if t > 1-dt {
+	if t > 1.0-dt {
 		// last sample before the reset
-		t = (t - 1) / dt
-		return t*t + t + t + 1
+		t = (t - 1.0) / dt
+		return t*t + t + t + 1.0
 	}
 	return 0
 }
@@ -131,10 +133,10 @@ func (s *voice) Generate(dur time.Duration, amplitude uint8, w io.Writer) error 
 
 	dt := s.freq / sampleRate
 	for range N {
-		saw := 2*phase - 1
+		saw := 2.0*phase - 1.0
 		saw -= polyBlep(phase, dt)
 
-		v := saw * 2.7
+		v := saw * 2.7 // Compensate filter attenuation.
 		for _, f := range s.filters {
 			v = f.process(v)
 		}
@@ -147,9 +149,41 @@ func (s *voice) Generate(dur time.Duration, amplitude uint8, w io.Writer) error 
 			return err
 		}
 		phase += dt
-		if phase >= 1 {
-			phase -= 1
+		if phase >= 1.0 {
+			phase -= 1.0
 		}
 	}
 	return nil
+}
+
+// Source plays sound continuously, this emulates a buzzer that we can feed generated sound into.
+type source struct {
+	mu  sync.Mutex
+	pcm []byte
+	pos int
+}
+
+func (s *source) Read(p []byte) (int, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	n := 0
+	if s.pos < len(s.pcm) {
+		n = copy(p, s.pcm[s.pos:])
+		n -= n % 2 // stay on 16-bit frame boundaries
+		s.pos += n
+	}
+	// Generate silence if we are out of things to play
+	if n == 0 {
+		for i := n; i < len(p); i++ {
+			p[i] = 0
+		}
+	}
+	return len(p), nil
+}
+
+func (s *source) set(pcm []byte) {
+	s.mu.Lock()
+	s.pcm, s.pos = pcm, 0
+	s.mu.Unlock()
 }
