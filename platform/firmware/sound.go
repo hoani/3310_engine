@@ -7,6 +7,7 @@ import (
 
 	"github.com/hoani/3310_engine/engine"
 	"github.com/hoani/3310_engine/engine/sound/note"
+	"github.com/hoani/3310_engine/platform/firmware/board"
 )
 
 const sampleRate = 44100
@@ -17,19 +18,12 @@ type SoundPlayer struct {
 	active      engine.Note
 	sound       engine.Sound
 	frame       uint16
-	pwm         PwmGroup
+	pwm         board.PwmGroup
 	ch          uint8
 	durPerFrame time.Duration
 }
 
-type PwmGroup interface {
-	Enable(enable bool)
-	SetPeriod(period uint64) error
-	Set(channel uint8, value uint32)
-	Top() uint32
-}
-
-func NewSoundPlayer(pwm PwmGroup, ch uint8, fps int) *SoundPlayer {
+func NewSoundPlayer(pwm board.PwmGroup, ch uint8, fps int) *SoundPlayer {
 	p := &SoundPlayer{
 		active:      engine.Note{Index: note.None},
 		sound:       nil,

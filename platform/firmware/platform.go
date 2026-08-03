@@ -4,13 +4,13 @@ package firmware
 
 import (
 	"fmt"
-	"image/color"
 	"machine"
 	"runtime"
 	"strings"
 	"time"
 
 	"github.com/hoani/3310_engine/engine"
+	"github.com/hoani/3310_engine/platform/firmware/board"
 	"tinygo.org/x/drivers/pcd8544"
 )
 
@@ -94,74 +94,78 @@ func (p *Platform) Draw() error {
 	return p.canvas.Display()
 }
 
-func Run(game engine.Game) {
-	// Configure SPI with a 1 MHz frequency.
-	bus := machine.SPI0
-	bus.Configure(machine.SPIConfig{
+func setupPcd(def *board.Pcd) *pcd8544.Device {
+	def.Spi.Configure(machine.SPIConfig{
 		Frequency: 1000000,
-		SCK:       machine.Pin(18),
-		SDO:       machine.Pin(19),
-		SDI:       machine.Pin(16),
+		SCK:       def.SckPin,
+		SDO:       def.SdoPin,
+		SDI:       def.SdiPin,
 	})
 
-	dcPin := machine.Pin(20)
+	dcPin := def.DcPin
 	dcPin.Configure(machine.PinConfig{Mode: machine.PinOutput})
 	dcPin.High()
 
-	rstPin := machine.Pin(21)
+	rstPin := def.RstPin
 	rstPin.Configure(machine.PinConfig{Mode: machine.PinOutput})
 	rstPin.High()
 
-	scePin := machine.Pin(17)
+	scePin := def.ScePin
 	scePin.Configure(machine.PinConfig{Mode: machine.PinOutput})
 	scePin.High() // CS inactive
 
-	d := pcd8544.New(bus, dcPin, rstPin, scePin)
+	d := pcd8544.New(def.Spi, dcPin, rstPin, scePin)
 
 	d.Configure(pcd8544.Config{
 		Width:  84,
 		Height: 48,
 	})
 
-	led := machine.LED
-	led.Configure(machine.PinConfig{Mode: machine.PinOutput})
+	return d
+}
 
-	pin := machine.GPIO15
-	pwm := machine.PWM7
-	pwm.Configure(machine.PWMConfig{
+func setupBuzzer(def *board.Buzzer, fps int) (*SoundPlayer, error) {
+	def.Pwm.Configure(machine.PWMConfig{
 		Period: 50 * 1e6,
 	})
-	ch, err := pwm.Channel(pin)
+	ch, err := def.Pwm.Channel(def.Pin)
 	if err != nil {
-		println(err.Error())
+		return nil, err
+	}
+	def.Pwm.Enable(false)
+
+	return NewSoundPlayer(def.Pwm, ch, fps), nil
+}
+
+func handleErr(info string, err error) {
+	if err == nil {
 		return
 	}
-	pwm.Enable(false)
-
-	snd := NewSoundPlayer(pwm, ch, game.Info().Fps)
-
-	keypad, cmd := NewKeypad([3]machine.Pin{machine.GP3, machine.GP4, machine.GP5},
-		[4]machine.Pin{machine.GP6, machine.GP7, machine.GP8, machine.GP9})
-
-	p := New(game, d, led, snd, keypad)
-
-	game.Setup(cmd, snd, p)
-
-	c := color.RGBA{255, 255, 255, 255}
-
-	for j := range 48 {
-		for i := range 84 {
-			if j > 28 && i > 64 {
-				c = color.RGBA{255, 255, 255, 255}
-			} else {
-				c = color.RGBA{0, 0, 0, 0}
-			}
-			d.SetPixel(int16(i), int16(j), c)
-		}
+	for {
+		fmt.Printf("%s: %s\n", info, err.Error())
+		time.Sleep(5 * time.Second)
 	}
+}
+
+func Run(game engine.Game) {
+
+	def, err := board.Get()
+	handleErr("Board def", err)
+
+	// Configure SPI with a 1 MHz frequency.
+	pcd := setupPcd(&def.Pcd)
+
+	def.Led.Configure(machine.PinConfig{Mode: machine.PinOutput})
+
+	buzzer, err := setupBuzzer(&def.Buzzer, game.Info().Fps)
+	handleErr("Audion Setup", err)
+
+	keypad, cmd := NewKeypad(def.Keypad.Col, def.Keypad.Row)
+
+	p := New(game, pcd, def.Led, buzzer, keypad)
+
+	game.Setup(cmd, buzzer, p)
 
 	err = p.Run()
-	if err != nil {
-		fmt.Printf("Game crash %e", err)
-	}
+	handleErr("Game Crash", err)
 }
