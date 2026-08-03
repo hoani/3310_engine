@@ -95,7 +95,6 @@ func (p *Platform) Update() error {
 			p.debug.cpu = c/128.0 + p.debug.cpu*127.0/128.0
 		}
 	}
-	// p.snd.Update()
 
 	return p.game.Draw(p.canvas) // This gets done here because we don't want to miss frames.
 }

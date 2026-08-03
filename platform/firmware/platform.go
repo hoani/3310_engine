@@ -20,14 +20,16 @@ type Platform struct {
 	led    machine.Pin
 	lcd    *pcd8544.Device
 	keypad *Keypad
+	snd    *SoundPlayer
 }
 
-func New(game engine.Game, lcd *pcd8544.Device, led machine.Pin, keypad *Keypad) *Platform {
+func New(game engine.Game, lcd *pcd8544.Device, led machine.Pin, snd *SoundPlayer, keypad *Keypad) *Platform {
 	return &Platform{
 		game:   game,
 		canvas: NewCanvas(lcd),
 		led:    led,
 		lcd:    lcd,
+		snd:    snd,
 		keypad: keypad,
 	}
 }
@@ -59,6 +61,7 @@ func (p *Platform) Run() error {
 		if err := p.game.Update(); err != nil {
 			return err
 		}
+		p.snd.Update()
 		dStart := time.Now()
 		if err := p.game.Draw(p.canvas); err != nil {
 			return err
@@ -123,12 +126,26 @@ func Run(game engine.Game) {
 	led := machine.LED
 	led.Configure(machine.PinConfig{Mode: machine.PinOutput})
 
+	pin := machine.GPIO15
+	pwm := machine.PWM7
+	pwm.Configure(machine.PWMConfig{
+		Period: 50 * 1e6,
+	})
+	ch, err := pwm.Channel(pin)
+	if err != nil {
+		println(err.Error())
+		return
+	}
+	pwm.Enable(false)
+
+	snd := NewSoundPlayer(pwm, ch, game.Info().Fps)
+
 	keypad, cmd := NewKeypad([3]machine.Pin{machine.GP3, machine.GP4, machine.GP5},
 		[4]machine.Pin{machine.GP6, machine.GP7, machine.GP8, machine.GP9})
 
-	p := New(game, d, led, keypad)
+	p := New(game, d, led, snd, keypad)
 
-	game.Setup(cmd, p)
+	game.Setup(cmd, snd, p)
 
 	c := color.RGBA{255, 255, 255, 255}
 
@@ -143,7 +160,7 @@ func Run(game engine.Game) {
 		}
 	}
 
-	err := p.Run()
+	err = p.Run()
 	if err != nil {
 		fmt.Printf("Game crash %e", err)
 	}

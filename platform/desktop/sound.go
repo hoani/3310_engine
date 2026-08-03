@@ -24,10 +24,6 @@ type SoundPlayer struct {
 	// Notes
 	filters []*biquad
 	notes   [note.Total]*voice
-	// Orchestration
-	active engine.Note
-	sound  engine.Sound
-	frame  uint16
 }
 
 func NewSoundPlayer() (*SoundPlayer, error) {
@@ -44,9 +40,6 @@ func NewSoundPlayer() (*SoundPlayer, error) {
 	p := &SoundPlayer{
 		ctx:     ctx,
 		filters: []*biquad{newBandpass(3442, 1.63), newBandpass(5411, 9.75)},
-		active:  engine.Note{Index: note.None},
-		sound:   nil,
-		frame:   0,
 		buffer:  bytes.NewBuffer([]byte{}),
 	}
 
@@ -57,45 +50,6 @@ func NewSoundPlayer() (*SoundPlayer, error) {
 
 	return p, nil
 }
-
-// func (p *SoundPlayer) Update() {
-// 	if p.sound == nil {
-// 		return
-// 	}
-// 	if p.frame == 0xffff {
-// 		p.sound = nil
-// 		return
-// 	}
-// 	n, ok := p.sound.GetNote(p.frame)
-// 	if !ok {
-// 		fmt.Println("done")
-// 		p.frame = 0
-// 		p.sound = nil
-// 		p.stop()
-// 		return
-// 	}
-// 	p.frame++
-
-// 	if n.Index == p.active.Index {
-// 		fmt.Println("continue")
-// 		p.notes[p.active.Index].Enable()
-// 		return
-// 	}
-
-// 	p.stop()
-
-// 	p.active.Index = n.Index
-// 	fmt.Printf("next %d\n", n.Index)
-// 	if n.Index == note.None {
-// 		return
-// 	}
-
-// 	s := p.notes[n.Index]
-// 	s.Enable()
-
-// 	p.player = p.ctx.NewPlayer(s)
-// 	p.player.Play()
-// }
 
 func (p *SoundPlayer) stop() {
 	if p.player != nil {
@@ -111,9 +65,6 @@ func (p *SoundPlayer) Play(s engine.Sound) {
 		n := s.Next()
 		p.notes[n.Index].Generate(n.Duration, n.Amplitude, p.buffer)
 	}
-	p.frame = 0
-	p.active.Index = note.None
-	p.sound = s
 	p.player = p.ctx.NewPlayer(p.buffer)
 	p.player.Play()
 }
