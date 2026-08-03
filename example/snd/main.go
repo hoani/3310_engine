@@ -57,7 +57,7 @@ func (g *Game) Draw(canvas engine.Canvas) error {
 
 func main() {
 
-	tune := sound.Sound(10, sound.Note(note.C1, 0xFF, 8), sound.None(8), sound.Note(note.C4, 0xFF, 16), sound.None(8))
+	tune := sound.Sound(10, sound.Note(note.C4, 0xFF, 8), sound.None(8), sound.Note(note.A4, 0xFF, 16), sound.None(8))
 
 	platform.Run(&Game{info: &engine.GameInfo{Debug: true, Fps: 60}, tune: tune})
 }
