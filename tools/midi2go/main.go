@@ -1,54 +1,39 @@
-// Command img2p5 converts PNG sprites into 8-bit binary
-// PGM (P5) files. Three states are encoded in the gray value so a single
-// file stays fully previewable in tools which support p5.
+// Command midi2go converts midi into an array of engine notes.
+// This exists because it avoids me having to process midis directly on an embedded device freeing up rom and runtime.
 //
-//	  0 = ink        (opaque + dark  -> black on the display)
-//	255 = paper      (opaque + light -> white on the display)
-//	128 = transparent(alpha 0        -> mask off; skip when blitting)
+//	 Usage:
 //
-// Because the display treats 1 as black and PGM treats 0 as black, ink maps
-// to 0 here and previews match the screen with no inversion.
-//
-// Wire it up next to the package that will embed the sprites:
-//
-//	//go:generate go run ./png2p5 -in assets/png -out assets/pgm
+//		//go:generate go run ./midi2go -in assets/midi -out assets/music
 //
 // then run `go generate ./...`.
 package main
 
 import (
-	"bufio"
+	"errors"
 	"flag"
 	"fmt"
 	"html/template"
-	"image/png"
 	"os"
 	"path/filepath"
 	"strings"
 	"unicode"
-)
 
-const (
-	valInk         = 0    // opaque + dark
-	valPaper       = 0xf9 // opaque + light
-	valTransparent = 0xff // alpha below the cut
+	"gitlab.com/gomidi/midi/v2"
+	"gitlab.com/gomidi/midi/v2/smf"
 )
 
 func main() {
-	in := flag.String("in", ".", "directory of source PNG files")
-	out := flag.String("out", ".", "directory to write .pgm (P5) files")
-	threshold := flag.Int("threshold", 128, "luminance 0-255 below which an opaque pixel is ink")
-	alphaCut := flag.Int("alpha", 128, "alpha 0-255 at or above which a pixel is opaque")
-	gray := flag.Bool("gray", false, "retain grayscale values (default: two-colour threshold)")
+	in := flag.String("in", ".", "directory of source midi files")
+	out := flag.String("out", ".", "directory to write .go music files")
 	flag.Parse()
 
-	if err := run(*in, *out, *gray, *threshold, *alphaCut); err != nil {
-		fmt.Fprintf(os.Stderr, "img2p5: %e", err)
+	if err := run(*in, *out); err != nil {
+		fmt.Fprintf(os.Stderr, "midi2go: %e", err)
 		os.Exit(1)
 	}
 }
 
-func run(inDir, outDir string, gray bool, threshold, alphaCut int) error {
+func run(inDir, outDir string) error {
 	entries, err := os.ReadDir(inDir)
 	if err != nil {
 		return err
@@ -58,139 +43,142 @@ func run(inDir, outDir string, gray bool, threshold, alphaCut int) error {
 	}
 
 	count := 0
-	imgs := []string{}
 	for _, e := range entries {
 		if e.IsDir() {
 			continue
 		}
-		if !strings.EqualFold(filepath.Ext(e.Name()), ".png") {
+		if !strings.EqualFold(filepath.Ext(e.Name()), ".mid") {
 			fmt.Fprintf(os.Stdout, "skipping: %s", e.Name())
 			continue
 		}
 		src := filepath.Join(inDir, e.Name())
-		imgName := strings.TrimSuffix(e.Name(), filepath.Ext(e.Name())) + ".pgm"
-		imgs = append(imgs, imgName)
-		dst := filepath.Join(outDir, imgName)
-		if err := convert(src, dst, gray, threshold, alphaCut); err != nil {
+		name := strings.TrimSuffix(e.Name(), filepath.Ext(e.Name())) + ".go"
+		dst := filepath.Join(outDir, name)
+		if err := convert(src, dst); err != nil {
 			return fmt.Errorf("%s: %w", e.Name(), err)
 		}
 		fmt.Printf("png2p5: %s -> %s\n", src, dst)
 		count++
 	}
 
-	embName := filepath.Base(outDir)
-	if gray {
-		embName += "_gray"
-	}
-	embName += ".go"
-	writeEmbeds(outDir, embName, imgs)
-
-	fmt.Printf("png2p5: converted %d file(s)\n", count)
+	fmt.Printf("midi2go: converted %d file(s)\n", count)
 	return nil
 }
 
-func encodeShade(gray int) byte {
-	level := (gray*32 + 127) / 255 // round(gray/255 * 32) -> 0..32
-	if level >= 32 {
-		return valPaper
-	}
-	return byte(level << 3)
+type Entry struct {
+	Key uint8
+	Dur uint
 }
 
-func convert(src, dst string, gray bool, threshold, alphaCut int) error {
+func gcd(a, b uint) uint {
+	for b != 0 {
+		a, b = b, a%b
+	}
+	return a
+}
+
+func convert(src, dst string) error {
 	f, err := os.Open(src)
 	if err != nil {
 		return err
 	}
 	defer f.Close()
 
-	img, err := png.Decode(f)
+	divisor := uint(0) // Greatest common divisor in milliseconds
+	notes := []Entry{}
+	current := uint8(0)
+	startUs := int64(0)
+	var midiErr error = nil
+
+	err = smf.ReadTracksFrom(f).
+		Do(
+			func(te smf.TrackEvent) {
+				if midiErr != nil {
+					return
+				}
+				if !te.Message.IsMeta() {
+					var ch, key, velocity uint8
+					if te.Message.Type().Is(midi.NoteOnMsg) {
+						te.Message.GetNoteOn(&ch, &key, &velocity)
+						if ch != 0 {
+							return // Not interested in other channels.
+						}
+						if current != 0 {
+							midiErr = errors.New("Parse error, may only play one note at a time.")
+							return
+						}
+						current = key
+						startUs = te.AbsMicroSeconds
+					}
+					if te.Message.Type().Is(midi.NoteOffMsg) {
+						te.Message.GetNoteOff(&ch, &key, &velocity)
+						if ch != 0 {
+							return // Not interested in other channels.
+						}
+						if current != key {
+							midiErr = errors.New("Parse error, stopped note is not currently playing")
+							return
+						}
+						current = 0
+						dur := uint((te.AbsMicroSeconds - startUs) / 1000)
+
+						if divisor == 0 {
+							divisor = dur
+						} else {
+							divisor = gcd(dur, divisor) // Keep finding the greatest common divisor.
+						}
+
+						notes = append(notes, Entry{Key: key, Dur: dur})
+						// fmt.Printf("@%dms NoteOff: %d\n", te.AbsMicroSeconds/1000, key)
+					}
+
+				}
+			},
+		).Error()
 	if err != nil {
 		return err
 	}
-	b := img.Bounds()
-	w, h := b.Dx(), b.Dy()
-
-	pix := make([]byte, 0, w*h)
-	for y := b.Min.Y; y < b.Max.Y; y++ {
-		for x := b.Min.X; x < b.Max.X; x++ {
-			r, g, bl, a := img.At(x, y).RGBA()
-
-			if int(a>>8) < alphaCut {
-				pix = append(pix, valTransparent)
-				continue
-			}
-
-			// Perceived brighness
-			lum := (299*int(r>>8) + 587*int(g>>8) + 114*int(bl>>8)) / 1000
-
-			if gray {
-				pix = append(pix, encodeShade(lum))
-				continue
-			}
-
-			if lum < threshold {
-				pix = append(pix, valInk)
-			} else {
-				pix = append(pix, valPaper)
-			}
-
-		}
+	if midiErr != nil {
+		return midiErr
 	}
 
-	return writeP5(dst, w, h, pix)
+	for i := range notes {
+		notes[i].Dur = notes[i].Dur / divisor
+	}
+
+	return writeGo(dst, divisor, notes)
 }
 
-func writeP5(path string, w, h int, pix []byte) error {
-	f, err := os.Create(path)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-
-	bw := bufio.NewWriter(f)
-	// P5 header: magic \n width space height \n maxval \n, then raw raster,
-	// one byte per pixel, top-to-bottom, left-to-right, no row padding.
-	fmt.Fprintf(bw, "P5\n%d %d\n255\n", w, h)
-	bw.Write(pix)
-	return bw.Flush()
-}
-
-func writeEmbeds(path, name string, images []string) error {
-	type Entry struct {
-		VarName  string
-		FileName string
-	}
+func writeGo(path string, msPerDur uint, notes []Entry) error {
 
 	type templateData struct {
-		Package string
-		Images  []Entry
+		Package  string
+		Name     string
+		MsPerDur uint
+		Notes    []Entry
 	}
 
 	data := templateData{
-		Package: filepath.Base(path),
-		Images:  make([]Entry, len(images)),
+		Package:  filepath.Base(filepath.Dir(path)),
+		Name:     toCamel(filepath.Base(path)),
+		MsPerDur: msPerDur,
+		Notes:    notes,
 	}
 
-	for i, img := range images {
-		data.Images[i].FileName = img
-		data.Images[i].VarName = toCamel(img)
-	}
-
-	var tmpl = template.Must(template.New("imgs").Parse(`// Generated by img2p5;
+	var tmpl = template.Must(template.New("imgs").Parse(`// Generated by midi2go;
 package {{.Package}}
 
 import (
-	_ "embed"
+	"github.com/hoani/3310_engine/engine/sound"
+	"github.com/hoani/3310_engine/engine/sound/note"
 )
-{{range .Images}}
-//go:embed "{{.FileName}}"
-var {{.VarName}} string
-{{end}}
+
+var {{.Name}} = sound.Sound({{.MsPerDur}}, {{range .Notes}}
+	sound.Note(note.IndexFromMidi({{.Key}}), 0xFF, {{.Dur}}),{{end}}
+)
 `))
 
-	tmplPath := filepath.Join(path, name)
-	f, err := os.Create(tmplPath)
+	f, err := os.Create(path)
 	if err != nil {
 		return err
 	}
@@ -198,10 +186,10 @@ var {{.VarName}} string
 
 	if err := tmpl.Execute(f, data); err != nil {
 		_ = f.Close()
-		return fmt.Errorf("executing template for %s: %w", name, err)
+		return fmt.Errorf("executing template for %s: %w", data.Name, err)
 	}
 	if err := f.Close(); err != nil {
-		return fmt.Errorf("closing file for %s: %w", name, err)
+		return fmt.Errorf("closing file for %s: %w", data.Name, err)
 	}
 
 	return nil
@@ -220,10 +208,10 @@ func toCamel(filename string) string {
 	}
 	name := b.String()
 	if name == "" {
-		return "Img"
+		return "Snd"
 	}
 	if unicode.IsDigit([]rune(name)[0]) { // identifiers can't start with a digit
-		name = "Img" + name
+		name = "Snd" + name
 	}
 	return name
 }

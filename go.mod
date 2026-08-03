@@ -7,6 +7,7 @@ require (
 	github.com/hajimehoshi/ebiten/v2 v2.9.9
 	github.com/shirou/gopsutil/v4 v4.26.6
 	github.com/stretchr/testify v1.11.1
+	gitlab.com/gomidi/midi/v2 v2.3.24
 	tinygo.org/x/drivers v0.35.0
 	tinygo.org/x/tinyfont v0.7.0
 )
