@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestDither(t *testing.T) {
+func TestDitherSprite(t *testing.T) {
 	testCases := []struct {
 		x, y  []int
 		shade uint8
@@ -27,7 +27,7 @@ func TestDither(t *testing.T) {
 		t.Run(fmt.Sprintf("case %d", i), func(t *testing.T) {
 			for i, x := range tc.x {
 				y := tc.y[i]
-				d, v := draw.Dither(x, y, tc.shade)
+				d, v := draw.DitherSprite(x, y, tc.shade)
 				require.Equal(t, d, tc.draw)
 				require.Equal(t, v, tc.value)
 			}

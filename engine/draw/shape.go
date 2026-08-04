@@ -12,7 +12,7 @@ type shapeBuilder struct {
 func newShapeBuilder(c engine.Canvas) shapeBuilder {
 	return shapeBuilder{
 		c:     c,
-		shade: engine.ShadeBlack,
+		shade: 0x00,
 	}
 }
 
@@ -40,9 +40,9 @@ func (b *RectangleBuilder) New(p0, p1 Point) *RectangleBuilder {
 }
 
 func (b *RectangleBuilder) Draw(on bool) {
-	shade := engine.ShadeBlack
+	shade := uint8(0x00)
 	if !on {
-		shade = engine.ShadeWhite
+		shade = uint8(0xff)
 	}
 	b.DrawShade(shade)
 }
@@ -74,9 +74,9 @@ func (b *CircleBuilder) New(center Point, radius int16) *CircleBuilder {
 }
 
 func (b *CircleBuilder) Draw(on bool) {
-	shade := engine.ShadeBlack
+	shade := uint8(0x00)
 	if !on {
-		shade = engine.ShadeWhite
+		shade = uint8(0xff)
 	}
 	b.DrawShade(shade)
 }
@@ -117,9 +117,9 @@ func (b *TriangleBuilder) New(p0, p1, p2 Point) *TriangleBuilder {
 }
 
 func (b *TriangleBuilder) Draw(on bool) {
-	shade := engine.ShadeBlack
+	shade := uint8(0x00)
 	if !on {
-		shade = engine.ShadeWhite
+		shade = 0xFF
 	}
 	b.DrawShade(shade)
 }
@@ -133,7 +133,7 @@ func hLine(c engine.Canvas, x0, x1, y int, shade uint8) {
 		x0, x1 = x1, x0
 	}
 	for x := x0; x <= x1; x++ {
-		_, v := Dither(x, y, shade)
+		v := Dither(x, y, shade)
 		c.Set(x, y, v)
 	}
 }
@@ -181,6 +181,6 @@ func filledTriangle(c engine.Canvas, p0, p1, p2 Point, shade uint8) {
 }
 
 func drawDither(c engine.Canvas, x, y int, shade uint8) {
-	_, v := Dither(x, y, shade)
+	v := Dither(x, y, shade)
 	c.Set(x, y, v)
 }

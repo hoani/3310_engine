@@ -18,14 +18,23 @@ func Bayer64(x, y int, coverage uint8) (on bool) {
 	return bayer8[y&7][x&7] <= coverage
 }
 
-func Dither(x, y int, shade uint8) (draw bool, value bool) {
-	if shade == engine.ShadeTransparent {
+func DitherSprite(x, y int, sample uint8) (draw bool, value bool) {
+	if sample == engine.SpriteTransparent {
 		return false, false
 	}
-	if shade >= engine.ShadeWhite {
+	if sample >= engine.SpriteWhite {
 		return true, false
 	}
-	level := (shade >> 3) & 0x1f
+	level := ((sample >> 3) & 0x1f)
 	inkCoverage := 64 - 2*int(level)
 	return true, Bayer64(x, y, uint8(inkCoverage))
+}
+
+func Dither(x, y int, shade uint8) (active bool) {
+	if shade >= 0xfc {
+		return false
+	}
+	level := (shade >> 2)
+	inkCoverage := 63 - int(level)
+	return Bayer64(x, y, uint8(inkCoverage))
 }
