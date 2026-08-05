@@ -11,6 +11,11 @@ import (
 	"github.com/hoani/3310_engine/platform"
 )
 
+type Item struct {
+	draw func(canvas engine.Canvas) error
+	name string
+}
+
 type Game struct {
 	count  int
 	draw   draw.Draw
@@ -18,6 +23,8 @@ type Game struct {
 	debug  engine.Debug
 	sphere engine.Sprite
 	info   *engine.GameInfo
+	index  int
+	items  []Item
 }
 
 func (g *Game) Setup(keypad *command.Command[engine.Key], snd engine.SoundPlayer, debug engine.Debug) {
@@ -30,7 +37,13 @@ func (g *Game) Info() *engine.GameInfo {
 }
 
 func (g *Game) Update() error {
+	g.keypad.Update()
 	g.count++
+
+	if g.keypad.Pressed(engine.K8) {
+		g.index = (g.index + 1) % len(g.items)
+		g.count = 0
+	}
 	return nil
 }
 
@@ -38,12 +51,14 @@ func (g *Game) Draw(canvas engine.Canvas) error {
 	if g.draw == nil {
 		g.draw = draw.New(canvas)
 	}
-	c := true
-	if g.count/(canvas.Width()*canvas.Height())%2 == 1 {
-		c = false
-	}
 	canvas.Clear()
 
+	g.draw.Text(8, 0, g.items[g.index].name)
+
+	return g.items[g.index].draw(canvas)
+}
+
+func (g *Game) drawTriangle(canvas engine.Canvas) error {
 	{
 		count := g.count / 128 * 128
 
@@ -72,13 +87,26 @@ func (g *Game) Draw(canvas engine.Canvas) error {
 			g.draw.Triangle(p0, p1, p2).DrawShade(shade)
 		}
 	}
+	return nil
+}
+
+func (g *Game) drawCircle(canvas engine.Canvas) error {
+	canvas.Clear()
 
 	g.draw.Circle(draw.P(84-16, 16), 12).Draw(true)
 	g.draw.Circle(draw.P(84-16, 16), 5).Draw(false)
+	return nil
+}
+
+func (g *Game) drawRectangle(canvas engine.Canvas) error {
+	c := true
+	if g.count/(canvas.Width()*canvas.Height())%2 == 1 {
+		c = false
+	}
+	canvas.Clear()
 
 	g.draw.Rectangle(0, 0, 12, 16).DrawShade(0x88)
 	g.draw.Rectangle(0, 0, 8, 12).Draw(c)
-
 	return nil
 }
 
@@ -87,5 +115,15 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	platform.Run(&Game{sphere: sphere, info: &engine.GameInfo{Debug: true, Fps: 60}})
+	g := &Game{
+		sphere: sphere,
+		info:   &engine.GameInfo{Debug: true, Fps: 60},
+	}
+	g.items = append(
+		g.items,
+		Item{draw: g.drawTriangle, name: "Triangle"},
+		Item{draw: g.drawCircle, name: "Circles"},
+		Item{draw: g.drawRectangle, name: "Rectangle"},
+	)
+	platform.Run(g)
 }

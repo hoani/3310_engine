@@ -15,7 +15,9 @@ var bayer8 = [8][8]uint8{
 }
 
 func Bayer64(x, y int, coverage uint8) (on bool) {
-	return bayer8[y&7][x&7] <= coverage
+	x = x & 0x07
+	y = y & 0x07
+	return bayer8[y][x] <= coverage
 }
 
 func DitherSprite(x, y int, sample uint8) (draw bool, value bool) {
@@ -26,8 +28,8 @@ func DitherSprite(x, y int, sample uint8) (draw bool, value bool) {
 		return true, false
 	}
 	level := ((sample >> 3) & 0x1f)
-	inkCoverage := 64 - 2*int(level)
-	return true, Bayer64(x, y, uint8(inkCoverage))
+	inkCoverage := 64 - 2*level
+	return true, Bayer64(x, y, inkCoverage)
 }
 
 func Dither(x, y int, shade uint8) (active bool) {
@@ -35,6 +37,6 @@ func Dither(x, y int, shade uint8) (active bool) {
 		return false
 	}
 	level := (shade >> 2)
-	inkCoverage := 63 - int(level)
-	return Bayer64(x, y, uint8(inkCoverage))
+	inkCoverage := 63 - level
+	return Bayer64(x, y, inkCoverage)
 }
