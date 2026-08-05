@@ -95,6 +95,10 @@ func (g *Game) drawCircle(canvas engine.Canvas) error {
 
 	g.draw.Circle(draw.P(84-16, 16), 13).Draw(true)
 	g.draw.Circle(draw.P(84-16, 16), 5).Draw(false)
+
+	gradient := draw.NewRadialGradient(draw.P(24, 16), 4, 32, 0xff, 0x00)
+	g.draw.Circle(draw.P(32, 24), 46).DrawGradient(gradient)
+
 	return nil
 }
 
@@ -107,6 +111,8 @@ func (g *Game) drawRectangle(canvas engine.Canvas) error {
 
 	g.draw.Rectangle(0, 0, 12, 16).DrawShade(0x88)
 	g.draw.Rectangle(0, 0, 8, 12).Draw(c)
+	gradient := draw.NewLinearGradient(draw.P(16, 0), draw.P(48, 48), 0xff, 0x00)
+	g.draw.Rectangle(16, 0, 84, 48).DrawGradient(gradient)
 	return nil
 }
 

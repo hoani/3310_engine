@@ -16,6 +16,10 @@ type CircleBuilder struct {
 
 type drawPixel func(x, y int)
 
+type Gradient interface {
+	Calculate(x, y int) uint8
+}
+
 type ShapeDrawer interface {
 	Draw(drawPixel drawPixel)
 }
@@ -27,6 +31,7 @@ type ShapeBuilder struct {
 	triangle  TriangleBuilder
 	active    ShapeDrawer
 	shade     uint8
+	gradient  Gradient
 }
 
 func NewShapeBuilder(c engine.Canvas) *ShapeBuilder {
@@ -37,6 +42,7 @@ func NewShapeBuilder(c engine.Canvas) *ShapeBuilder {
 		triangle:  TriangleBuilder{},
 		active:    nil,
 		shade:     0x00,
+		gradient:  nil,
 	}
 }
 
@@ -93,6 +99,15 @@ func (b *ShapeBuilder) Draw(on bool) {
 	} else {
 		b.active.Draw(b.drawInk)
 	}
+	b.active = nil
+}
+
+func (b *ShapeBuilder) DrawGradient(gradient Gradient) {
+	if b.active == nil {
+		return
+	}
+	b.gradient = gradient
+	b.active.Draw(b.drawGradient)
 	b.active = nil
 }
 
@@ -199,4 +214,8 @@ func (s *ShapeBuilder) drawPaper(x, y int) {
 
 func (s *ShapeBuilder) drawDither(x, y int) {
 	s.c.Set(x, y, Dither(x, y, s.shade))
+}
+
+func (s *ShapeBuilder) drawGradient(x, y int) {
+	s.c.Set(x, y, Dither(x, y, s.gradient.Calculate(x, y)))
 }
