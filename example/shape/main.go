@@ -93,7 +93,7 @@ func (g *Game) drawTriangle(canvas engine.Canvas) error {
 func (g *Game) drawCircle(canvas engine.Canvas) error {
 	canvas.Clear()
 
-	g.draw.Circle(draw.P(84-16, 16), 12).Draw(true)
+	g.draw.Circle(draw.P(84-16, 16), 13).Draw(true)
 	g.draw.Circle(draw.P(84-16, 16), 5).Draw(false)
 	return nil
 }

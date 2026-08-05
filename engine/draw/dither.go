@@ -36,6 +36,9 @@ func Dither(x, y int, shade uint8) (active bool) {
 	if shade >= 0xfc {
 		return false
 	}
+	if shade == 0x00 {
+		return true
+	}
 	level := (shade >> 2)
 	inkCoverage := 63 - level
 	return Bayer64(x, y, inkCoverage)

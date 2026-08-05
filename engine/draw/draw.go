@@ -20,28 +20,24 @@ func P(x, y int) Point {
 }
 
 type Draw interface {
-	Triangle(p0, p1, p2 Point) *TriangleBuilder
-	Circle(center Point, radius int16) *CircleBuilder
-	Rectangle(x0, y0, x1, y1 int) *RectangleBuilder
+	Triangle(p0, p1, p2 Point) *ShapeBuilder
+	Circle(center Point, radius int16) *ShapeBuilder
+	Rectangle(x0, y0, x1, y1 int) *ShapeBuilder
 	Sprite(x, y int, spr engine.Sprite, index int, invert bool)
 	Text(x, y int, str string) *TextBuilder
 }
 
 type draw struct {
-	c                engine.Canvas
-	textBuilder      *TextBuilder
-	triangleBuilder  *TriangleBuilder
-	rectangleBuilder *RectangleBuilder
-	circleBuilder    *CircleBuilder
+	c            engine.Canvas
+	textBuilder  *TextBuilder
+	shapeBuilder *ShapeBuilder
 }
 
 func New(c engine.Canvas) Draw {
 	return &draw{
-		c:                c,
-		textBuilder:      NewTextBuilder(&FontCanvas{c: c, ink: false}, &font.Tiny),
-		triangleBuilder:  NewTriangleBuilder(c),
-		rectangleBuilder: NewRectangleBuilder(c),
-		circleBuilder:    NewCircleBuilder(c),
+		c:            c,
+		textBuilder:  NewTextBuilder(&FontCanvas{c: c, ink: false}, &font.Tiny),
+		shapeBuilder: NewShapeBuilder(c),
 	}
 }
 
@@ -70,14 +66,14 @@ func (d *draw) Text(x, y int, str string) *TextBuilder {
 // 	}
 // }
 
-func (d *draw) Rectangle(x0, y0, x1, y1 int) *RectangleBuilder {
-	return d.rectangleBuilder.New(P(x0, y0), P(x1, y1))
+func (d *draw) Rectangle(x0, y0, x1, y1 int) *ShapeBuilder {
+	return d.shapeBuilder.Rectangle(P(x0, y0), P(x1, y1))
 }
 
-func (d *draw) Triangle(p0, p1, p2 Point) *TriangleBuilder {
-	return d.triangleBuilder.New(p0, p1, p2)
+func (d *draw) Triangle(p0, p1, p2 Point) *ShapeBuilder {
+	return d.shapeBuilder.Triangle(p0, p1, p2)
 }
 
-func (d *draw) Circle(center Point, radius int16) *CircleBuilder {
-	return d.circleBuilder.New(center, radius)
+func (d *draw) Circle(center Point, radius int16) *ShapeBuilder {
+	return d.shapeBuilder.Circle(center, radius)
 }

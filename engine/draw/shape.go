@@ -4,31 +4,44 @@ import (
 	"github.com/hoani/3310_engine/engine"
 )
 
-type shapeBuilder struct {
-	c     engine.Canvas
-	shade uint8
-}
-
-func newShapeBuilder(c engine.Canvas) shapeBuilder {
-	return shapeBuilder{
-		c:     c,
-		shade: 0x00,
-	}
-}
-
 type RectangleBuilder struct {
-	shapeBuilder
 	p0 Point
 	p1 Point
 }
 
-func NewRectangleBuilder(c engine.Canvas) *RectangleBuilder {
-	return &RectangleBuilder{
-		shapeBuilder: newShapeBuilder(c),
+type CircleBuilder struct {
+	center   Point
+	diameter int16
+}
+
+type drawPixel func(x, y int)
+
+type ShapeDrawer interface {
+	Draw(drawPixel drawPixel)
+}
+
+type ShapeBuilder struct {
+	c         engine.Canvas
+	rectangle RectangleBuilder
+	circle    CircleBuilder
+	triangle  TriangleBuilder
+	active    ShapeDrawer
+	shade     uint8
+}
+
+func NewShapeBuilder(c engine.Canvas) *ShapeBuilder {
+	return &ShapeBuilder{
+		c:         c,
+		rectangle: RectangleBuilder{},
+		circle:    CircleBuilder{},
+		triangle:  TriangleBuilder{},
+		active:    nil,
+		shade:     0x00,
 	}
 }
 
-func (b *RectangleBuilder) New(p0, p1 Point) *RectangleBuilder {
+func (sb *ShapeBuilder) Rectangle(p0, p1 Point) *ShapeBuilder {
+	b := &sb.rectangle
 	b.p0, b.p1 = p0, p1
 	if b.p0.X > b.p1.X {
 		b.p1.X, b.p0.X = b.p0.X, b.p1.X
@@ -36,109 +49,105 @@ func (b *RectangleBuilder) New(p0, p1 Point) *RectangleBuilder {
 	if b.p0.Y > b.p1.Y {
 		b.p1.Y, b.p0.Y = b.p0.Y, b.p1.Y
 	}
-	return b
+	sb.active = b
+	return sb
 }
 
-func (b *RectangleBuilder) Draw(on bool) {
-	shade := uint8(0x00)
-	if !on {
-		shade = uint8(0xff)
-	}
-	b.DrawShade(shade)
-}
-
-func (b *RectangleBuilder) DrawShade(shade uint8) {
+func (b *RectangleBuilder) Draw(drawPixel drawPixel) {
 	for x := b.p0.X; x < b.p1.X; x++ {
 		for y := b.p0.Y; y < b.p1.Y; y++ {
-			drawDither(b.c, x, y, shade)
+			drawPixel(x, y)
 		}
 	}
 }
 
-type CircleBuilder struct {
-	shapeBuilder
-	center Point
-	radius int16
-}
-
-func NewCircleBuilder(c engine.Canvas) *CircleBuilder {
-	return &CircleBuilder{
-		shapeBuilder: newShapeBuilder(c),
-	}
-}
-
-func (b *CircleBuilder) New(center Point, radius int16) *CircleBuilder {
+func (sb *ShapeBuilder) Circle(center Point, diameter int16) *ShapeBuilder {
+	b := &sb.circle
 	b.center = center
-	b.radius = radius
-	return b
+	b.diameter = diameter
+	sb.active = b
+	return sb
 }
 
-func (b *CircleBuilder) Draw(on bool) {
-	shade := uint8(0x00)
-	if !on {
-		shade = uint8(0xff)
+func (b *ShapeBuilder) DrawShade(shade uint8) {
+	if b.active == nil {
+		return
 	}
-	b.DrawShade(shade)
+	b.shade = shade
+	if shade == 0xff {
+		b.active.Draw(b.drawPaper)
+	} else if shade == 0x00 {
+		b.active.Draw(b.drawInk)
+	} else {
+		b.active.Draw(b.drawDither)
+	}
+	b.active = nil
 }
 
-func (b *CircleBuilder) DrawShade(shade uint8) {
-	rad2 := int(b.radius) * int(b.radius)
-	for j := 0; j < int(b.radius); j++ {
-		y2 := j * j
-		for i := 0; i < int(b.radius); i++ {
-			x2 := i * i
-			if x2+y2 >= rad2 {
+func (b *ShapeBuilder) Draw(on bool) {
+	if b.active == nil {
+		return
+	}
+	if !on {
+		b.active.Draw(b.drawPaper)
+	} else {
+		b.active.Draw(b.drawInk)
+	}
+	b.active = nil
+}
+
+func (b *CircleBuilder) Draw(drawPixel drawPixel) {
+	d2 := int(b.diameter) * int(b.diameter)
+	offset := int((1 + b.diameter) % 2)
+	radius := int((1 + b.diameter) / 2)
+
+	for j := 0; j < radius; j++ {
+		h2 := 4 * j * j
+		for i := 0; i < radius; i++ {
+			w2 := 4 * i * i
+			if h2+w2 >= d2 {
 				break
 			}
-			drawDither(b.c, b.center.X-i, b.center.Y-j, shade)
-			drawDither(b.c, b.center.X+i, b.center.Y-j, shade)
-			drawDither(b.c, b.center.X-i, b.center.Y+j, shade)
-			drawDither(b.c, b.center.X+i, b.center.Y+j, shade)
+			x0 := (b.center.X - i) - offset
+			y0 := (b.center.Y - j) - offset
+			x1 := b.center.X + i
+			y1 := b.center.Y + j
+
+			drawPixel(x0, y0)
+			drawPixel(x1, y0)
+			drawPixel(x0, y1)
+			drawPixel(x1, y1)
 		}
 	}
 }
 
 type TriangleBuilder struct {
-	shapeBuilder
 	p0, p1, p2 Point
 }
 
-func NewTriangleBuilder(c engine.Canvas) *TriangleBuilder {
-	return &TriangleBuilder{
-		shapeBuilder: newShapeBuilder(c),
-	}
-}
-
-func (b *TriangleBuilder) New(p0, p1, p2 Point) *TriangleBuilder {
+func (sb *ShapeBuilder) Triangle(p0, p1, p2 Point) *ShapeBuilder {
+	b := &sb.triangle
 	b.p0 = p0
 	b.p1 = p1
 	b.p2 = p2
-	return b
+	sb.active = b
+	return sb
 }
 
-func (b *TriangleBuilder) Draw(on bool) {
-	shade := uint8(0x00)
-	if !on {
-		shade = 0xFF
-	}
-	b.DrawShade(shade)
+func (b *TriangleBuilder) Draw(drawPixel drawPixel) {
+	filledTriangle(drawPixel, b.p0, b.p1, b.p2)
 }
 
-func (b *TriangleBuilder) DrawShade(shade uint8) {
-	filledTriangle(b.c, b.p0, b.p1, b.p2, shade)
-}
-
-func hLine(c engine.Canvas, x0, x1, y int, shade uint8) {
+func hLine(drawPixel drawPixel, x0, x1, y int) {
 	if x0 > x1 {
 		x0, x1 = x1, x0
 	}
 	for x := x0; x <= x1; x++ {
-		v := Dither(x, y, shade)
-		c.Set(x, y, v)
+		drawPixel(x, y)
 	}
 }
 
-func filledTriangle(c engine.Canvas, p0, p1, p2 Point, shade uint8) {
+func filledTriangle(drawPixel drawPixel, p0, p1, p2 Point) {
 	// sort points by y ascending: (x0,y0) top ... (x2,y2) bottom
 	if p0.Y > p1.Y {
 		p0, p1 = p1, p0
@@ -176,11 +185,18 @@ func filledTriangle(c engine.Canvas, p0, p1, p2 Point, shade uint8) {
 			}
 		}
 
-		hLine(c, x0, x1, y, shade)
+		hLine(drawPixel, x0, x1, y)
 	}
 }
 
-func drawDither(c engine.Canvas, x, y int, shade uint8) {
-	v := Dither(x, y, shade)
-	c.Set(x, y, v)
+func (s *ShapeBuilder) drawInk(x, y int) {
+	s.c.Set(x, y, true)
+}
+
+func (s *ShapeBuilder) drawPaper(x, y int) {
+	s.c.Set(x, y, false)
+}
+
+func (s *ShapeBuilder) drawDither(x, y int) {
+	s.c.Set(x, y, Dither(x, y, s.shade))
 }
