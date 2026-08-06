@@ -9,15 +9,25 @@ func (d *draw) Sprite(x, y int, spr engine.Sprite, index int, opts *Opts) {
 	j0 := 0
 	j1 := spr.Height()
 
-	if opts.HasOutline {
+	outlineInk := opts.Outline.Ink
+	if opts.Outline.Apply {
 		i0 -= 1
 		i1 += 1
 		j0 -= 1
 		j1 += 1
+		if opts.Invert {
+			outlineInk = !opts.Outline.Ink
+		}
 	}
 
 	for i := i0; i < i1; i++ {
 		for j := j0; j < j1; j++ {
+			if opts.Alpha.Apply {
+				if !opts.Alpha.Dither(x+i, y+j, opts.Alpha.Amount) {
+					continue
+				}
+			}
+
 			shade := spr.At(i, j, index)
 			show, on := DitherSprite(x+i, y+j, shade)
 
@@ -29,12 +39,12 @@ func (d *draw) Sprite(x, y int, spr engine.Sprite, index int, opts *Opts) {
 				continue
 			}
 
-			if opts.HasOutline {
+			if opts.Outline.Apply {
 				if spr.At(i-1, j, index) != engine.SpriteTransparent ||
 					spr.At(i+1, j, index) != engine.SpriteTransparent ||
 					spr.At(i, j-1, index) != engine.SpriteTransparent ||
 					spr.At(i, j+1, index) != engine.SpriteTransparent {
-					d.c.Set(x+i, y+j, opts.OutlineInk)
+					d.c.Set(x+i, y+j, outlineInk)
 				}
 			}
 		}

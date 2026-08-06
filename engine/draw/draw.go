@@ -27,27 +27,6 @@ type Draw interface {
 	Text(x, y int, str string) *TextBuilder
 }
 
-type Opts struct {
-	Invert     bool
-	HasOutline bool
-	OutlineInk bool
-}
-
-func NewOpts() *Opts {
-	return &Opts{}
-}
-
-func (o *Opts) WithInvert() *Opts {
-	o.Invert = true
-	return o
-}
-
-func (o *Opts) WithOutline(set bool) *Opts {
-	o.HasOutline = true
-	o.OutlineInk = set
-	return o
-}
-
 type draw struct {
 	c            engine.Canvas
 	textBuilder  *TextBuilder

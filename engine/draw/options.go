@@ -1,0 +1,44 @@
+package draw
+
+type OutlineOpts struct {
+	Apply bool
+	Ink   bool
+}
+
+type AlphaOpts struct {
+	Apply  bool
+	Amount uint8
+	Dither func(x, y int, value uint8) bool
+}
+
+type Opts struct {
+	Invert  bool
+	Outline OutlineOpts
+	Alpha   AlphaOpts
+}
+
+func NewOpts() *Opts {
+	return &Opts{}
+}
+
+func (o *Opts) WithInvert() *Opts {
+	o.Invert = true
+	return o
+}
+
+func (o *Opts) WithOutline(set bool) *Opts {
+	o.Outline.Apply = true
+	o.Outline.Ink = set
+	return o
+}
+
+func (o *Opts) WithAlpha(amount uint8) *Opts {
+	if amount == 0xFF {
+		o.Alpha.Apply = false
+		return o
+	}
+	o.Alpha.Apply = true
+	o.Alpha.Amount = amount
+	o.Alpha.Dither = Dither
+	return o
+}

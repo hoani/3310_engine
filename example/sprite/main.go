@@ -44,8 +44,12 @@ func (g *Game) Draw(canvas engine.Canvas) error {
 
 	textOps := draw.NewOpts().WithOutline(true)
 
-	for i := 0; i < 26; i++ {
+	for i := 0; i < 12; i++ {
 		g.draw.Sprite(i*7, 12, g.letters, i, textOps)
+	}
+
+	for i := 0; i < 12; i++ {
+		g.draw.Sprite(i*7, 32, g.letters, i, textOps.WithAlpha(uint8(g.count)))
 	}
 
 	return nil

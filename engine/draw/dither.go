@@ -14,10 +14,10 @@ var bayer8 = [8][8]uint8{
 	{63, 31, 55, 23, 61, 29, 53, 21},
 }
 
-func Bayer64(x, y int, coverage uint8) (on bool) {
+func Bayer64(x, y int, amount uint8) (on bool) {
 	x = x & 0x07
 	y = y & 0x07
-	return bayer8[y][x] <= coverage
+	return bayer8[y][x] <= amount
 }
 
 func DitherSprite(x, y int, sample uint8) (draw bool, value bool) {
