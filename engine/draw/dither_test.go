@@ -28,8 +28,8 @@ func TestDitherSprite(t *testing.T) {
 			for i, x := range tc.x {
 				y := tc.y[i]
 				d, v := draw.DitherSprite(x, y, tc.shade)
-				require.Equal(t, d, tc.draw)
-				require.Equal(t, v, tc.value)
+				require.Equal(t, tc.draw, d)
+				require.Equal(t, tc.value, v, "x %d, y %d", x, y)
 			}
 		})
 	}

@@ -12,7 +12,7 @@ func TestDrawTriangle(t *testing.T) {
 	c := desktop.NewCanvas()
 	d := draw.New(c)
 
-	d.Triangle(draw.P(0, 0), draw.P(3, 3), draw.P(0, 3)).Draw(true)
+	d.Triangle(draw.P(0, 0), draw.P(3, 3), draw.P(0, 3)).Draw(true, draw.NewOpts())
 
 	require.Equal(t, c.Get(0, 0), true)
 	require.Equal(t, c.Get(3, 3), true)
