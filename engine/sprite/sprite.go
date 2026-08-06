@@ -4,6 +4,8 @@ import (
 	"errors"
 	"strconv"
 	"strings"
+
+	"github.com/hoani/3310_engine/engine"
 )
 
 type sprite struct {
@@ -14,6 +16,9 @@ type sprite struct {
 }
 
 func (s *sprite) At(i, j, index int) (shade uint8) {
+	if i < 0 || i >= s.W || j < 0 || j >= s.H {
+		return engine.SpriteTransparent
+	}
 	index = index % s.count
 	offset := s.count*s.W*j + i + (s.W * index)
 	return uint8(s.Content[offset])

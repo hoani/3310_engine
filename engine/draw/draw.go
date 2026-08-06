@@ -23,8 +23,29 @@ type Draw interface {
 	Triangle(p0, p1, p2 Point) *ShapeBuilder
 	Circle(center Point, radius int16) *ShapeBuilder
 	Rectangle(x0, y0, x1, y1 int) *ShapeBuilder
-	Sprite(x, y int, spr engine.Sprite, index int, invert bool)
+	Sprite(x, y int, spr engine.Sprite, index int, opts *Opts)
 	Text(x, y int, str string) *TextBuilder
+}
+
+type Opts struct {
+	Invert     bool
+	HasOutline bool
+	OutlineInk bool
+}
+
+func NewOpts() *Opts {
+	return &Opts{}
+}
+
+func (o *Opts) WithInvert() *Opts {
+	o.Invert = true
+	return o
+}
+
+func (o *Opts) WithOutline(set bool) *Opts {
+	o.HasOutline = true
+	o.OutlineInk = set
+	return o
 }
 
 type draw struct {

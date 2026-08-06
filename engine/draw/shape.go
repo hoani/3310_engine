@@ -46,35 +46,6 @@ func NewShapeBuilder(c engine.Canvas) *ShapeBuilder {
 	}
 }
 
-func (sb *ShapeBuilder) Rectangle(p0, p1 Point) *ShapeBuilder {
-	b := &sb.rectangle
-	b.p0, b.p1 = p0, p1
-	if b.p0.X > b.p1.X {
-		b.p1.X, b.p0.X = b.p0.X, b.p1.X
-	}
-	if b.p0.Y > b.p1.Y {
-		b.p1.Y, b.p0.Y = b.p0.Y, b.p1.Y
-	}
-	sb.active = b
-	return sb
-}
-
-func (b *RectangleBuilder) Draw(drawPixel drawPixel) {
-	for x := b.p0.X; x < b.p1.X; x++ {
-		for y := b.p0.Y; y < b.p1.Y; y++ {
-			drawPixel(x, y)
-		}
-	}
-}
-
-func (sb *ShapeBuilder) Circle(center Point, diameter int16) *ShapeBuilder {
-	b := &sb.circle
-	b.center = center
-	b.diameter = diameter
-	sb.active = b
-	return sb
-}
-
 func (b *ShapeBuilder) DrawShade(shade uint8) {
 	if b.active == nil {
 		return
@@ -109,6 +80,35 @@ func (b *ShapeBuilder) DrawGradient(gradient Gradient) {
 	b.gradient = gradient
 	b.active.Draw(b.drawGradient)
 	b.active = nil
+}
+
+func (sb *ShapeBuilder) Rectangle(p0, p1 Point) *ShapeBuilder {
+	b := &sb.rectangle
+	b.p0, b.p1 = p0, p1
+	if b.p0.X > b.p1.X {
+		b.p1.X, b.p0.X = b.p0.X, b.p1.X
+	}
+	if b.p0.Y > b.p1.Y {
+		b.p1.Y, b.p0.Y = b.p0.Y, b.p1.Y
+	}
+	sb.active = b
+	return sb
+}
+
+func (b *RectangleBuilder) Draw(drawPixel drawPixel) {
+	for x := b.p0.X; x < b.p1.X; x++ {
+		for y := b.p0.Y; y < b.p1.Y; y++ {
+			drawPixel(x, y)
+		}
+	}
+}
+
+func (sb *ShapeBuilder) Circle(center Point, diameter int16) *ShapeBuilder {
+	b := &sb.circle
+	b.center = center
+	b.diameter = diameter
+	sb.active = b
+	return sb
 }
 
 func (b *CircleBuilder) Draw(drawPixel drawPixel) {

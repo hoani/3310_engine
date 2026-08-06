@@ -40,10 +40,12 @@ func (g *Game) Draw(canvas engine.Canvas) error {
 
 	canvas.Clear()
 
-	g.draw.Sprite((g.count)%128-40, 0, g.sphere, 0, !g.col)
+	g.draw.Sprite((g.count)%128-40, 0, g.sphere, 0, draw.NewOpts())
+
+	textOps := draw.NewOpts().WithOutline(true)
 
 	for i := 0; i < 26; i++ {
-		g.draw.Sprite(i*7, 12, g.letters, i, !g.col)
+		g.draw.Sprite(i*7, 12, g.letters, i, textOps)
 	}
 
 	return nil
