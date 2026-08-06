@@ -5,10 +5,12 @@ type OutlineOpts struct {
 	Ink   bool
 }
 
+type DitherFunc func(x, y int, value uint8) bool
+
 type AlphaOpts struct {
 	Apply  bool
 	Amount uint8
-	Dither func(x, y int, value uint8) bool
+	Dither DitherFunc
 }
 
 type Opts struct {
@@ -41,4 +43,22 @@ func (o *Opts) WithAlpha(amount uint8) *Opts {
 	o.Alpha.Amount = amount
 	o.Alpha.Dither = Dither
 	return o
+}
+
+func (o *Opts) WithAlphaCustom(amount uint8, dither DitherFunc) *Opts {
+	if amount == 0xFF {
+		o.Alpha.Apply = false
+		return o
+	}
+	o.Alpha.Apply = true
+	o.Alpha.Amount = amount
+	o.Alpha.Dither = dither
+	return o
+}
+
+func (o *Opts) Show(x, y int) bool {
+	if !o.Alpha.Apply {
+		return true
+	}
+	return o.Alpha.Dither(x, y, o.Alpha.Amount)
 }

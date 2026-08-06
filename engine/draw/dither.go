@@ -14,7 +14,7 @@ var bayer8 = [8][8]uint8{
 	{63, 31, 55, 23, 61, 29, 53, 21},
 }
 
-func Bayer64(x, y int, amount uint8) (on bool) {
+func Bayer64(x, y int, amount uint8) bool {
 	x = x & 0x07
 	y = y & 0x07
 	return bayer8[y][x] <= amount
@@ -42,4 +42,8 @@ func Dither(x, y int, shade uint8) (active bool) {
 	level := (shade >> 2)
 	inkCoverage := 63 - level
 	return Bayer64(x, y, inkCoverage)
+}
+
+func DitherOffset(x, y int, shade uint8) (active bool) {
+	return Dither((x + y + 1), (x - y), shade)
 }

@@ -22,10 +22,8 @@ func (d *draw) Sprite(x, y int, spr engine.Sprite, index int, opts *Opts) {
 
 	for i := i0; i < i1; i++ {
 		for j := j0; j < j1; j++ {
-			if opts.Alpha.Apply {
-				if !opts.Alpha.Dither(x+i, y+j, opts.Alpha.Amount) {
-					continue
-				}
+			if !opts.Show(x, y) {
+				continue
 			}
 
 			shade := spr.At(i, j, index)

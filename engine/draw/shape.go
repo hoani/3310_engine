@@ -32,6 +32,7 @@ type ShapeBuilder struct {
 	active    ShapeDrawer
 	shade     uint8
 	gradient  Gradient
+	opts      *Opts
 }
 
 func NewShapeBuilder(c engine.Canvas) *ShapeBuilder {
@@ -46,10 +47,11 @@ func NewShapeBuilder(c engine.Canvas) *ShapeBuilder {
 	}
 }
 
-func (b *ShapeBuilder) DrawShade(shade uint8) {
+func (b *ShapeBuilder) DrawShade(shade uint8, opts *Opts) {
 	if b.active == nil {
 		return
 	}
+	b.opts = opts
 	b.shade = shade
 	if shade == 0xff {
 		b.active.Draw(b.drawPaper)
@@ -61,10 +63,11 @@ func (b *ShapeBuilder) DrawShade(shade uint8) {
 	b.active = nil
 }
 
-func (b *ShapeBuilder) Draw(on bool) {
+func (b *ShapeBuilder) Draw(on bool, opts *Opts) {
 	if b.active == nil {
 		return
 	}
+	b.opts = opts
 	if !on {
 		b.active.Draw(b.drawPaper)
 	} else {
@@ -73,10 +76,11 @@ func (b *ShapeBuilder) Draw(on bool) {
 	b.active = nil
 }
 
-func (b *ShapeBuilder) DrawGradient(gradient Gradient) {
+func (b *ShapeBuilder) DrawGradient(gradient Gradient, opts *Opts) {
 	if b.active == nil {
 		return
 	}
+	b.opts = opts
 	b.gradient = gradient
 	b.active.Draw(b.drawGradient)
 	b.active = nil
@@ -205,17 +209,37 @@ func filledTriangle(drawPixel drawPixel, p0, p1, p2 Point) {
 }
 
 func (s *ShapeBuilder) drawInk(x, y int) {
-	s.c.Set(x, y, true)
+	if !s.opts.Show(x, y) {
+		return
+	}
+	s.c.Set(x, y, !s.opts.Invert)
 }
 
 func (s *ShapeBuilder) drawPaper(x, y int) {
-	s.c.Set(x, y, false)
+	if !s.opts.Show(x, y) {
+		return
+	}
+	s.c.Set(x, y, s.opts.Invert)
 }
 
 func (s *ShapeBuilder) drawDither(x, y int) {
-	s.c.Set(x, y, Dither(x, y, s.shade))
+	if !s.opts.Show(x, y) {
+		return
+	}
+	on := Dither(x, y, s.shade)
+	if s.opts.Invert {
+		on = !on
+	}
+	s.c.Set(x, y, on)
 }
 
 func (s *ShapeBuilder) drawGradient(x, y int) {
-	s.c.Set(x, y, Dither(x, y, s.gradient.Calculate(x, y)))
+	if !s.opts.Show(x, y) {
+		return
+	}
+	on := Dither(x, y, s.gradient.Calculate(x, y))
+	if s.opts.Invert {
+		on = !on
+	}
+	s.c.Set(x, y, on)
 }

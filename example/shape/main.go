@@ -80,11 +80,13 @@ func (g *Game) drawTriangle(canvas engine.Canvas) error {
 		p1 := draw.P(int(d*c1a)+x0, int(d*s1a)+y0)
 		p2 := draw.P(int(d*c2a)+x0, int(d*s2a)+y0)
 
+		opts := draw.NewOpts()
+
 		if (g.count/128)%2 == 0 {
-			g.draw.Triangle(p0, p1, p2).Draw(true)
+			g.draw.Triangle(p0, p1, p2).Draw(true, opts)
 		} else {
 			shade := uint8((g.count % 128) << 1)
-			g.draw.Triangle(p0, p1, p2).DrawShade(shade)
+			g.draw.Triangle(p0, p1, p2).DrawShade(shade, opts)
 		}
 	}
 	return nil
@@ -93,11 +95,13 @@ func (g *Game) drawTriangle(canvas engine.Canvas) error {
 func (g *Game) drawCircle(canvas engine.Canvas) error {
 	canvas.Clear()
 
-	g.draw.Circle(draw.P(84-16, 16), 13).Draw(true)
-	g.draw.Circle(draw.P(84-16, 16), 5).Draw(false)
+	opts := draw.NewOpts()
+
+	g.draw.Circle(draw.P(84-16, 16), 13).Draw(true, opts)
+	g.draw.Circle(draw.P(84-16, 16), 5).Draw(false, opts)
 
 	gradient := draw.NewRadialGradient(draw.P(24, 16), 4, 32, 0xff, 0x00)
-	g.draw.Circle(draw.P(32, 24), 46).DrawGradient(gradient)
+	g.draw.Circle(draw.P(32, 24), 46).DrawGradient(gradient, opts)
 
 	return nil
 }
@@ -109,10 +113,15 @@ func (g *Game) drawRectangle(canvas engine.Canvas) error {
 	}
 	canvas.Clear()
 
-	g.draw.Rectangle(0, 0, 12, 16).DrawShade(0x88)
-	g.draw.Rectangle(0, 0, 8, 12).Draw(c)
+	opts := draw.NewOpts()
+
+	g.draw.Rectangle(0, 0, 12, 16).DrawShade(0x88, opts)
+	g.draw.Rectangle(0, 0, 8, 12).Draw(c, opts)
 	gradient := draw.NewLinearGradient(draw.P(16, 0), draw.P(48, 48), 0xff, 0x00)
-	g.draw.Rectangle(16, 0, 84, 48).DrawGradient(gradient)
+	g.draw.Rectangle(16, 0, 84, 48).DrawGradient(gradient, opts)
+
+	g.draw.Rectangle(24, 8, 76, 40).Draw(false, opts.WithAlphaCustom(uint8(g.count), draw.DitherOffset))
+
 	return nil
 }
 
