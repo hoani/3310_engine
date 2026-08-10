@@ -88,12 +88,7 @@ func (p *Platform) Update() error {
 		return err
 	}
 	if p.debug != nil {
-		if math.IsNaN(p.debug.cpu) {
-			p.debug.cpu = 0.0
-		}
-		if c, err := p.debug.proc.Percent(0); err == nil {
-			p.debug.cpu = c/128.0 + p.debug.cpu*127.0/128.0
-		}
+		p.measureCpu()
 	}
 
 	return p.game.Draw(p.canvas) // This gets done here because we don't want to miss frames.
@@ -155,11 +150,16 @@ func (p *Platform) Draw(screen *ebiten.Image) {
 		op.LineSpacing = 12 * 0.8
 
 		statStr := fmt.Sprintf(
-			"FPS: %.1f\n\nTPS: %.1f\n\nCPU: %.1f%%",
+			"FPS: %.1f\n\nTPS: %.1f",
 			ebiten.ActualFPS(),
 			ebiten.ActualTPS(),
-			p.debug.cpu,
 		)
+		if !math.IsNaN(p.debug.cpu) {
+			statStr += fmt.Sprintf(
+				"\n\nCPU: %.1f%%",
+				p.debug.cpu,
+			)
+		}
 
 		text.Draw(screen, statStr, &text.GoTextFace{
 			Source: p.debug.fnt,
@@ -218,7 +218,7 @@ func Run(game engine.Game) {
 	game.Setup(cmd, snd, p)
 
 	if game.Info().Debug {
-		proc, err := process.NewProcess(int32(os.Getpid()))
+		proc, err := NewProcess()
 		handleError(err)
 		fnt, err := text.NewGoTextFaceSource(bytes.NewReader(Debug_ttf))
 		handleError(err)

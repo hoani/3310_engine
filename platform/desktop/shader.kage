@@ -13,7 +13,7 @@ var PixelBack vec4
 
 func Fragment(dstPos vec4, srcPos vec2, _ vec4) vec4 {
 	var base = imageSrc0At(srcPos)
-	if ((mod(dstPos.x - XOffset, XScale) - 0.5) < 0.5) || ((mod(dstPos.y - YOffset, YScale) - 0.5) < 0.5) {
+	if (mod(dstPos.x - XOffset, XScale) < 1.0) || (mod(dstPos.y - YOffset, YScale) < 1.0) {
 		return mix(PixelBack, PixelOn, base.r*sqrt(2.0/XScale))
 	}
 
