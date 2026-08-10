@@ -31,7 +31,21 @@ func (t *TextBuilder) Font(f tinyfont.Fonter) *TextBuilder {
 	return t
 }
 
-func (t *TextBuilder) Draw(on bool) {
+func (t *TextBuilder) Draw(on bool, opts *Opts) {
+	t.canvas.SetOpts(opts)
+	t.canvas.SetInk(on)
+
+	if opts.Outline.Apply {
+		t.canvas.SetInk(opts.Outline.Ink)
+		tinyfont.WriteLine(t.canvas, t.font, int16(t.x-1), int16(t.y), t.s, PixelOn)
+		tinyfont.WriteLine(t.canvas, t.font, int16(t.x+1), int16(t.y), t.s, PixelOn)
+		tinyfont.WriteLine(t.canvas, t.font, int16(t.x), int16(t.y-1), t.s, PixelOn)
+		tinyfont.WriteLine(t.canvas, t.font, int16(t.x), int16(t.y+1), t.s, PixelOn)
+		tinyfont.WriteLine(t.canvas, t.font, int16(t.x-1), int16(t.y-1), t.s, PixelOn)
+		tinyfont.WriteLine(t.canvas, t.font, int16(t.x+1), int16(t.y+1), t.s, PixelOn)
+		tinyfont.WriteLine(t.canvas, t.font, int16(t.x+1), int16(t.y-1), t.s, PixelOn)
+		tinyfont.WriteLine(t.canvas, t.font, int16(t.x-1), int16(t.y+1), t.s, PixelOn)
+	}
 	t.canvas.SetInk(on)
 	tinyfont.WriteLine(t.canvas, t.font, int16(t.x), int16(t.y), t.s, PixelOn)
 }

@@ -9,12 +9,17 @@ import (
 // Annoying generated fonts ignore colors when writing, so added this inverter
 
 type FontCanvas struct {
-	c   engine.Canvas
-	ink bool
+	c    engine.Canvas
+	ink  bool
+	opts Opts
 }
 
 func (fc *FontCanvas) SetInk(ink bool) {
 	fc.ink = ink
+}
+
+func (fc *FontCanvas) SetOpts(opts *Opts) {
+	fc.opts = *opts
 }
 
 func (fc *FontCanvas) Size() (x, y int16) {
@@ -22,7 +27,13 @@ func (fc *FontCanvas) Size() (x, y int16) {
 }
 
 func (fc *FontCanvas) SetPixel(x, y int16, col color.RGBA) {
-	if col.A != 0 {
+	ink := fc.ink
+
+	if fc.opts.Invert {
+		ink = !ink
+	}
+
+	if col.A != 0 && fc.opts.Show(int(x), int(y)) {
 		fc.c.Set(int(x), int(y), fc.ink)
 	}
 }

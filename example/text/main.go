@@ -40,8 +40,17 @@ func (g *Game) Draw(canvas engine.Canvas) error {
 	}
 	canvas.Clear()
 
-	g.draw.Text(52, 28, "Hello\nWorld").Font(&font.EffortsPro).Draw(c)
-	g.draw.Text(48, 6, "Hello Tiny").Draw(true)
+	g.draw.Text(52, 28, "Hello\nWorld").Font(&font.EffortsPro).Draw(c, draw.NewOpts())
+	count := (4 * g.count) % 0x1FF
+	if count > 0xFF {
+		count = 0xFF
+	}
+	g.draw.Text(12, 28, "FADE").Font(&font.EffortsPro).Draw(c, draw.NewOpts().WithAlpha(uint8(count)))
+	g.draw.Text(12, 40, "APPEAR").Font(&font.EffortsPro).Draw(c, draw.NewOpts().WithAlpha(uint8(0xFF-count)))
+
+	g.draw.Text(12, 6, "OUTLINE").Font(&font.EffortsPro).Draw(!c, draw.NewOpts().WithOutline(c))
+
+	g.draw.Text(48, 6, "Hello Tiny").Draw(true, draw.NewOpts())
 
 	return nil
 }

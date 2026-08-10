@@ -55,8 +55,10 @@ func (g *Game) Draw(canvas engine.Canvas) error {
 	}
 	canvas.Clear()
 
-	g.draw.Text(52, 28, "Hello\nWorld").Font(&font.EffortsPro).Draw(c)
-	g.draw.Text(48, 6, "Hello Tiny").Draw(true)
+	opts := draw.NewOpts()
+
+	g.draw.Text(52, 28, "Hello\nWorld").Font(&font.EffortsPro).Draw(c, opts)
+	g.draw.Text(48, 6, "Hello Tiny").Draw(true, opts)
 
 	return nil
 }
