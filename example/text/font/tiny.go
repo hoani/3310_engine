@@ -1,4 +1,4 @@
-// tinyfnotgen-ttf -fontname Tiny -package font -output font/tiny.go font/ttf/tiny.ttf -size 6 -dpi=72
+// tinyfnotgen-ttf -fontname Tiny -package font -output font/tiny.go font/ttf/tiny.ttf -size 6 -yadvance 5 -dpi=72
 
 package font
 
@@ -9,7 +9,7 @@ import (
 var Tiny = const2bit.Font{
 	OffsetMap: mTiny,
 	Data:      dTiny,
-	YAdvance:  6,
+	YAdvance:  5,
 	Name:      "Tiny",
 }
 

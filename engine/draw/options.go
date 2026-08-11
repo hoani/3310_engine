@@ -1,5 +1,7 @@
 package draw
 
+var DefaultOpts = Opts{}
+
 type OutlineOpts struct {
 	Apply bool
 	Ink   bool

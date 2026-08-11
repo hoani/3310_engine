@@ -6,7 +6,7 @@ import (
 	"github.com/hoani/3310_engine/engine/sound/note"
 )
 
-var Song = sound.Sound(400,
+var Song = sound.Sound(400, 
 	sound.Note(note.IndexFromMidi(64), 0xFF, 1),
 	sound.Note(note.IndexFromMidi(67), 0xFF, 1),
 	sound.Note(note.IndexFromMidi(64), 0xFF, 1),

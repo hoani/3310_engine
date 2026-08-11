@@ -34,7 +34,7 @@ func (fc *FontCanvas) SetPixel(x, y int16, col color.RGBA) {
 	}
 
 	if col.A != 0 && fc.opts.Show(int(x), int(y)) {
-		fc.c.Set(int(x), int(y), fc.ink)
+		fc.c.Set(int(x), int(y), ink)
 	}
 }
 

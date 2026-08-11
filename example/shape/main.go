@@ -53,9 +53,10 @@ func (g *Game) Draw(canvas engine.Canvas) error {
 	}
 	canvas.Clear()
 
-	g.draw.Text(8, 0, g.items[g.index].name)
+	g.items[g.index].draw(canvas)
 
-	return g.items[g.index].draw(canvas)
+	g.draw.Text(42, 0, g.items[g.index].name).HAlign(draw.FaCenter).Draw(false, draw.NewOpts().WithOutline(true))
+	return nil
 }
 
 func (g *Game) drawTriangle(canvas engine.Canvas) error {
@@ -93,8 +94,6 @@ func (g *Game) drawTriangle(canvas engine.Canvas) error {
 }
 
 func (g *Game) drawCircle(canvas engine.Canvas) error {
-	canvas.Clear()
-
 	opts := draw.NewOpts()
 
 	g.draw.Circle(draw.P(84-16, 16), 13).Draw(true, opts)
@@ -111,8 +110,6 @@ func (g *Game) drawRectangle(canvas engine.Canvas) error {
 	if g.count/(canvas.Width()*canvas.Height())%2 == 1 {
 		c = false
 	}
-	canvas.Clear()
-
 	opts := draw.NewOpts()
 
 	g.draw.Rectangle(0, 0, 12, 16).DrawShade(0x88, opts)
