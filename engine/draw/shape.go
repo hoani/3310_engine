@@ -14,6 +14,16 @@ type CircleBuilder struct {
 	diameter int16
 }
 
+type OvalBuilder struct {
+	center Point
+	width  int16
+	height int16
+}
+
+type TriangleBuilder struct {
+	p0, p1, p2 Point
+}
+
 type drawPixel func(x, y int)
 
 type Gradient interface {
@@ -28,6 +38,7 @@ type ShapeBuilder struct {
 	c         engine.Canvas
 	rectangle RectangleBuilder
 	circle    CircleBuilder
+	oval      OvalBuilder
 	triangle  TriangleBuilder
 	active    ShapeDrawer
 	shade     uint8
@@ -40,6 +51,7 @@ func NewShapeBuilder(c engine.Canvas) *ShapeBuilder {
 		c:         c,
 		rectangle: RectangleBuilder{},
 		circle:    CircleBuilder{},
+		oval:      OvalBuilder{},
 		triangle:  TriangleBuilder{},
 		active:    nil,
 		shade:     0x00,
@@ -116,15 +128,18 @@ func (sb *ShapeBuilder) Circle(center Point, diameter int16) *ShapeBuilder {
 }
 
 func (b *CircleBuilder) Draw(drawPixel drawPixel) {
-	d2 := int(b.diameter) * int(b.diameter)
-	offset := int((1 + b.diameter) % 2)
-	radius := int((1 + b.diameter) / 2)
+	d := int(b.diameter)
+	d2 := d * d
+	offset := (1 + d) % 2
+	radius := (1 + d) / 2
 
 	for j := 0; j < radius; j++ {
-		h2 := 4 * j * j
+		v := 2*j + offset
+		v2 := v * v
 		for i := 0; i < radius; i++ {
-			w2 := 4 * i * i
-			if h2+w2 >= d2 {
+			u := 2*i + offset
+			u2 := u * u
+			if u2+v2 >= d2 {
 				break
 			}
 			x0 := (b.center.X - i) - offset
@@ -140,8 +155,56 @@ func (b *CircleBuilder) Draw(drawPixel drawPixel) {
 	}
 }
 
-type TriangleBuilder struct {
-	p0, p1, p2 Point
+func (sb *ShapeBuilder) Oval(center Point, width, height int16) *ShapeBuilder {
+	b := &sb.oval
+	b.center = center
+	b.width = width
+	b.height = height
+	sb.active = b
+	return sb
+}
+
+func (b *OvalBuilder) Draw(drawPixel drawPixel) {
+	// Uses equation 1 = (x-xc)^2/a^2 + (y-yc)^2/b^2
+	// Where:
+	//   a = horizontal radius
+	//   b = vertical radius
+	//   xc, yc = the center point
+	//
+	// To handle widths and heights better though we actually use:
+	// 1 = (2*(x-xc))^2/w^2 + (2*(y-yc))^2/h^2
+	// The use of widths and heights allow us to continue using integers
+
+	w := int(b.width)
+	h := int(b.height)
+
+	w2 := w * w
+	h2 := h * h
+
+	jmax := (h + 1) / 2
+	imax := (w + 1) / 2
+
+	xoffset := int((1 + b.width) % 2)
+	yoffset := int((1 + b.height) % 2)
+
+	for j := 0; j < jmax; j++ {
+		limit := w2*h2 - 4*j*j*w2
+		for i := 0; i < imax; i++ {
+			check := 4 * i * i * h2
+			if check > limit {
+				break // We are done on this line
+			}
+			x0 := (b.center.X - i) - xoffset
+			y0 := (b.center.Y - j) - yoffset
+			x1 := b.center.X + i
+			y1 := b.center.Y + j
+
+			drawPixel(x0, y0)
+			drawPixel(x1, y0)
+			drawPixel(x0, y1)
+			drawPixel(x1, y1)
+		}
+	}
 }
 
 func (sb *ShapeBuilder) Triangle(p0, p1, p2 Point) *ShapeBuilder {

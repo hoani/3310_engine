@@ -105,6 +105,15 @@ func (g *Game) drawCircle(canvas engine.Canvas) error {
 	return nil
 }
 
+func (g *Game) drawOval(canvas engine.Canvas) error {
+	opts := draw.NewOpts()
+
+	g.draw.Oval(draw.P(42, 24), 25, 20).Draw(true, opts)
+	g.draw.Oval(draw.P(42, 24), 23, 5).Draw(false, opts)
+
+	return nil
+}
+
 func (g *Game) drawRectangle(canvas engine.Canvas) error {
 	c := true
 	if g.count/(canvas.Width()*canvas.Height())%2 == 1 {
@@ -133,6 +142,7 @@ func main() {
 	}
 	g.items = append(
 		g.items,
+		Item{draw: g.drawOval, name: "Oval"},
 		Item{draw: g.drawTriangle, name: "Triangle"},
 		Item{draw: g.drawCircle, name: "Circles"},
 		Item{draw: g.drawRectangle, name: "Rectangle"},
