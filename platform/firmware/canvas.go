@@ -27,8 +27,13 @@ func NewCanvas(device *pcd8544.Device) *canvas {
 	}
 }
 
-func (c *canvas) Clear() {
+func (c *canvas) Clear(set bool) {
 	clear(c.buffer)
+	if set {
+		for i := range c.buffer {
+			c.buffer[i] = 0xff
+		}
+	}
 }
 
 func (c *canvas) Set(x, y int, val bool) {

@@ -55,7 +55,7 @@ func (g *Game) Draw(canvas engine.Canvas) error {
 		g.draw = draw.New(canvas)
 	}
 
-	canvas.Clear()
+	canvas.Clear(false)
 
 	g.draw.Text(48, 6, "Hello Tiny").Draw(true, draw.NewOpts())
 

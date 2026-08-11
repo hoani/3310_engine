@@ -3,7 +3,7 @@ package engine
 import "github.com/hoani/3310_engine/engine/command"
 
 type Canvas interface {
-	Clear()
+	Clear(set bool)
 	Width() int
 	Height() int
 	Set(x, y int, val bool)

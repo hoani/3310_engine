@@ -53,7 +53,7 @@ func (g *Game) Draw(canvas engine.Canvas) error {
 	if g.count/(canvas.Width()*canvas.Height())%2 == 1 {
 		c = false
 	}
-	canvas.Clear()
+	canvas.Clear(false)
 
 	opts := draw.NewOpts()
 

@@ -51,7 +51,7 @@ func (g *Game) Draw(canvas engine.Canvas) error {
 	if g.draw == nil {
 		g.draw = draw.New(canvas)
 	}
-	canvas.Clear()
+	canvas.Clear(false)
 
 	g.items[g.index].draw(canvas)
 
@@ -116,10 +116,11 @@ func (g *Game) drawOval(canvas engine.Canvas) error {
 
 func (g *Game) drawRectangle(canvas engine.Canvas) error {
 	c := true
-	if g.count/(canvas.Width()*canvas.Height())%2 == 1 {
+	if g.count%300 > 150 {
 		c = false
 	}
 	opts := draw.NewOpts()
+	canvas.Clear(!c)
 
 	g.draw.Rectangle(0, 0, 12, 16).DrawShade(0x88, opts)
 	g.draw.Rectangle(0, 0, 8, 12).Draw(c, opts)

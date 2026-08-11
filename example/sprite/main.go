@@ -38,7 +38,7 @@ func (g *Game) Draw(canvas engine.Canvas) error {
 		g.draw = draw.New(canvas)
 	}
 
-	canvas.Clear()
+	canvas.Clear(false)
 
 	g.draw.Sprite((g.count)%128-40, 0, g.sphere, 0, draw.NewOpts())
 

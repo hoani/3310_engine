@@ -26,8 +26,12 @@ func NewCanvas() *canvas {
 	}
 }
 
-func (c *canvas) Clear() {
-	idx := uint8(c.image.Palette.Index(draw.PixelOff))
+func (c *canvas) Clear(set bool) {
+	px := draw.PixelOff
+	if set {
+		px = draw.PixelOn
+	}
+	idx := uint8(c.image.Palette.Index(px))
 	for i := range c.image.Pix {
 		c.image.Pix[i] = idx
 	}

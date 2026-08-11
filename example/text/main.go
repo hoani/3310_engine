@@ -50,7 +50,7 @@ func (g *Game) Draw(canvas engine.Canvas) error {
 	if g.draw == nil {
 		g.draw = draw.New(canvas)
 	}
-	canvas.Clear()
+	canvas.Clear(false)
 	g.draw.Text(42, 1, g.items[g.index].name).HAlign(draw.FaCenter).Draw(true, nil)
 
 	return g.items[g.index].draw(canvas)
