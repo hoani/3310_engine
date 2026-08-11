@@ -134,7 +134,7 @@ func (g *Game) drawRectangle(canvas engine.Canvas) error {
 
 func (g *Game) drawLine(canvas engine.Canvas) error {
 	opts := draw.NewOpts()
-	// g.draw.Line(10, 16, 74, 18, 1).Draw(true, opts)
+
 	for i := 20; i < 600; i += 300 {
 		count := i + g.count
 
@@ -151,6 +151,10 @@ func (g *Game) drawLine(canvas engine.Canvas) error {
 
 		g.draw.Line(p0.X, p0.Y, p1.X, p1.Y).Draw(true, opts)
 	}
+
+	g.draw.Line(4, 16, 4, 32).Draw(true, opts)
+	g.draw.Line(4, 32, 16, 44).Draw(true, opts)
+	g.draw.Line(16, 44, 32, 44).Draw(true, opts)
 	return nil
 }
 

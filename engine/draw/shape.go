@@ -324,7 +324,7 @@ func line(drawPixel drawPixel, p0, p1 Point) {
 
 	width := p1.X - p0.X
 
-	gradient := 0xffff * width / (height + 1)
+	gradient := 0xffff * (width + 1) / (height + 1)
 
 	for y := p0.Y; y <= p1.Y; y++ {
 
