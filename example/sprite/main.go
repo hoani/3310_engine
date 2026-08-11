@@ -9,18 +9,25 @@ import (
 	"github.com/hoani/3310_engine/platform"
 )
 
+type Item struct {
+	draw func(canvas engine.Canvas) error
+	name string
+}
+
 type Game struct {
-	count   int
-	draw    draw.Draw
-	debug   engine.Debug
-	col     bool
-	sphere  engine.Sprite
-	letters engine.Sprite
-	info    *engine.GameInfo
+	count  int
+	draw   draw.Draw
+	debug  engine.Debug
+	col    bool
+	info   *engine.GameInfo
+	keypad *command.Command[engine.Key]
+	index  int
+	items  []Item
 }
 
 func (g *Game) Setup(keypad *command.Command[engine.Key], snd engine.SoundPlayer, debug engine.Debug) {
 	g.debug = debug
+	g.keypad = keypad
 }
 
 func (g *Game) Info() *engine.GameInfo {
@@ -28,7 +35,14 @@ func (g *Game) Info() *engine.GameInfo {
 }
 
 func (g *Game) Update() error {
+	g.keypad.Update()
 	g.count++
+
+	if g.keypad.Pressed(engine.K8) {
+		g.index = (g.index + 1) % len(g.items)
+		g.count = 0
+	}
+
 	g.col = (g.count/300)%2 == 1
 	return nil
 }
@@ -39,30 +53,57 @@ func (g *Game) Draw(canvas engine.Canvas) error {
 	}
 
 	canvas.Clear(false)
+	g.draw.Text(42, 1, g.items[g.index].name).HAlign(draw.FaCenter).Draw(true, nil)
 
-	g.draw.Sprite((g.count)%128-40, 0, g.sphere, 0, draw.NewOpts())
-
-	textOps := draw.NewOpts().WithOutline(true)
-
-	for i := 0; i < 12; i++ {
-		g.draw.Sprite(i*7, 12, g.letters, i, textOps)
-	}
-
-	for i := 0; i < 12; i++ {
-		g.draw.Sprite(i*7, 32, g.letters, i, textOps.WithAlpha(uint8(g.count)))
-	}
-
-	return nil
+	return g.items[g.index].draw(canvas)
 }
 
-func main() {
+func (g *Game) drawSphere() func(engine.Canvas) error {
+
 	sphere, err := sprite.FromP5(pgm.Gradsphere)
 	if err != nil {
 		panic(err)
 	}
+
+	return func(c engine.Canvas) error {
+
+		g.draw.Sprite((g.count)%128-40, 0, sphere, 0, draw.NewOpts())
+
+		return nil
+	}
+}
+
+func (g *Game) drawLetters() func(engine.Canvas) error {
+
 	letters, err := sprite.StripFromP5(pgm.ClassicLight, 7)
 	if err != nil {
 		panic(err)
 	}
-	platform.Run(&Game{sphere: sphere, letters: letters, info: &engine.GameInfo{Debug: true, Fps: 60}})
+
+	return func(c engine.Canvas) error {
+		textOps := draw.NewOpts().WithOutline(true)
+
+		for i := 0; i < 12; i++ {
+			g.draw.Sprite(i*7, 12, letters, i, textOps)
+		}
+
+		textOps.WithAlpha(uint8(g.count))
+		for i := 0; i < 12; i++ {
+			g.draw.Sprite(i*7, 24, letters, i, textOps)
+		}
+
+		return nil
+	}
+}
+
+func main() {
+
+	g := &Game{info: &engine.GameInfo{Debug: true, Fps: 60}}
+
+	g.items = append(
+		g.items,
+		Item{draw: g.drawSphere(), name: "Sphere"},
+		Item{draw: g.drawLetters(), name: "Fading"},
+	)
+	platform.Run(g)
 }

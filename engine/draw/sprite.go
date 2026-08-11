@@ -22,7 +22,7 @@ func (d *draw) Sprite(x, y int, spr engine.Sprite, index int, opts *Opts) {
 
 	for i := i0; i < i1; i++ {
 		for j := j0; j < j1; j++ {
-			if !opts.Show(x, y) {
+			if !opts.Show(x+i, y+j) {
 				continue
 			}
 
