@@ -9,6 +9,11 @@ type RectangleBuilder struct {
 	p1 Point
 }
 
+type LineBuilder struct {
+	p0 Point
+	p1 Point
+}
+
 type CircleBuilder struct {
 	center   Point
 	diameter int16
@@ -40,6 +45,7 @@ type ShapeBuilder struct {
 	circle    CircleBuilder
 	oval      OvalBuilder
 	triangle  TriangleBuilder
+	line      LineBuilder
 	active    ShapeDrawer
 	shade     uint8
 	gradient  Gradient
@@ -53,6 +59,7 @@ func NewShapeBuilder(c engine.Canvas) *ShapeBuilder {
 		circle:    CircleBuilder{},
 		oval:      OvalBuilder{},
 		triangle:  TriangleBuilder{},
+		line:      LineBuilder{},
 		active:    nil,
 		shade:     0x00,
 		gradient:  nil,
@@ -220,6 +227,18 @@ func (b *TriangleBuilder) Draw(drawPixel drawPixel) {
 	filledTriangle(drawPixel, b.p0, b.p1, b.p2)
 }
 
+func (sb *ShapeBuilder) Line(p0, p1 Point) *ShapeBuilder {
+	b := &sb.line
+	b.p0 = p0
+	b.p1 = p1
+	sb.active = b
+	return sb
+}
+
+func (b *LineBuilder) Draw(drawPixel drawPixel) {
+	line(drawPixel, b.p0, b.p1)
+}
+
 func hLine(drawPixel drawPixel, x0, x1, y int) {
 	if x0 > x1 {
 		x0, x1 = x1, x0
@@ -265,6 +284,67 @@ func filledTriangle(drawPixel drawPixel, p0, p1, p2 Point) {
 			if firstHeight > 0 {
 				x1 += (p1.X - p0.X) * (y - p0.Y) / firstHeight
 			}
+		}
+
+		hLine(drawPixel, x0, x1, y)
+	}
+}
+
+func imax(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
+}
+
+func imin(a, b int) int {
+	if a > b {
+		return b
+	}
+	return a
+}
+
+func line(drawPixel drawPixel, p0, p1 Point) {
+	// sort points by y ascending: (x0,y0) top ... (x1,y1) bottom
+	if p0.Y > p1.Y {
+		p0, p1 = p1, p0
+	}
+
+	height := p1.Y - p0.Y
+
+	if height == 0 {
+		x0 := p0.X
+		x1 := p1.X
+		hLine(drawPixel, x0, x1, p0.Y)
+		return
+	}
+
+	xmin := imin(p0.X, p1.X)
+	xmax := imax(p0.X, p1.X)
+
+	width := p1.X - p0.X
+
+	gradient := 0xffff * width / (height + 1)
+
+	for y := p0.Y; y <= p1.Y; y++ {
+
+		x0 := p0.X + (gradient*((y)-p0.Y))/0xFFFF
+		x1 := p0.X + (gradient*((y+1)-p0.Y))/0xFFFF
+
+		if y < p1.Y {
+			if x1 > x0 {
+				x1--
+			} else if x1 < x0 {
+				x1++
+			}
+		}
+
+		if x0 < x1 {
+			x0 = imax(x0, xmin)
+			x1 = imin(x1, xmax)
+		} else {
+			x1 = imax(x1, xmin)
+			x0 = imin(x0, xmax)
 		}
 
 		hLine(drawPixel, x0, x1, y)

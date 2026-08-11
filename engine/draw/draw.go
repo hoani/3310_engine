@@ -24,6 +24,7 @@ type Draw interface {
 	Circle(center Point, radius int16) *ShapeBuilder
 	Oval(center Point, width int16, height int16) *ShapeBuilder
 	Rectangle(x0, y0, x1, y1 int) *ShapeBuilder
+	Line(x0, y0, x1, y1 int) *ShapeBuilder
 	Sprite(x, y int, spr engine.Sprite, index int, opts *Opts)
 	Text(x, y int, str string) *TextBuilder
 }
@@ -53,22 +54,12 @@ func (d *draw) Text(x, y int, str string) *TextBuilder {
 	return d.textBuilder.New(x, y, str)
 }
 
-// func (d *Draw) Line(x0, y0, x1, y1 int, w int, c bool) {
-// 	dx := x1 - x0
-// 	dy := y1 - y0
-// 	absDx := AbsInt(dx)
-// 	absDy := AbsInt(dy)
-// 	if absDx > absDy {
-// 		for i := 0; i < absDx; i++ {
-// 			x := x0 + dx*i/absDx
-// 			y := y0 + dy*i/absDx
-// 			d.c.Set(x, y, c)
-// 		}
-// 	}
-// }
-
 func (d *draw) Rectangle(x0, y0, x1, y1 int) *ShapeBuilder {
 	return d.shapeBuilder.Rectangle(P(x0, y0), P(x1, y1))
+}
+
+func (d *draw) Line(x0, y0, x1, y1 int) *ShapeBuilder {
+	return d.shapeBuilder.Line(P(x0, y0), P(x1, y1))
 }
 
 func (d *draw) Triangle(p0, p1, p2 Point) *ShapeBuilder {

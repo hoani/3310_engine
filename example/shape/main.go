@@ -132,6 +132,28 @@ func (g *Game) drawRectangle(canvas engine.Canvas) error {
 	return nil
 }
 
+func (g *Game) drawLine(canvas engine.Canvas) error {
+	opts := draw.NewOpts()
+	// g.draw.Line(10, 16, 74, 18, 1).Draw(true, opts)
+	for i := 20; i < 600; i += 300 {
+		count := i + g.count
+
+		alpha := math.Pi * float64(count) / float64(10*g.Info().Fps)
+		s0a := math.Sin(alpha)
+		c0a := math.Cos(alpha)
+
+		d := 17.0
+
+		x0, y0 := canvas.Width()/2, canvas.Height()/2+3
+
+		p0 := draw.P(int(d*c0a)+x0, int(d*s0a)+y0)
+		p1 := draw.P(int(-d*c0a)+x0, int(-d*s0a)+y0)
+
+		g.draw.Line(p0.X, p0.Y, p1.X, p1.Y).Draw(true, opts)
+	}
+	return nil
+}
+
 func main() {
 	sphere, err := sprite.FromP5(pgm.Gradsphere)
 	if err != nil {
@@ -147,6 +169,7 @@ func main() {
 		Item{draw: g.drawTriangle, name: "Triangle"},
 		Item{draw: g.drawCircle, name: "Circles"},
 		Item{draw: g.drawRectangle, name: "Rectangle"},
+		Item{draw: g.drawLine, name: "Line"},
 	)
 	platform.Run(g)
 }
