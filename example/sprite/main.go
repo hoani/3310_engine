@@ -67,7 +67,7 @@ func (g *Game) drawSphere() func(engine.Canvas) error {
 
 	return func(c engine.Canvas) error {
 
-		g.draw.Sprite((g.count)%128-40, 0, sphere, 0, draw.NewOpts())
+		g.draw.Sprite((g.count)%128-40, 0, sphere, 0, draw.NewSpriteOpts())
 
 		return nil
 	}
@@ -81,16 +81,45 @@ func (g *Game) drawLetters() func(engine.Canvas) error {
 	}
 
 	return func(c engine.Canvas) error {
-		textOps := draw.NewOpts().WithOutline(true)
+		textOps := draw.NewSpriteOpts()
+		textOps.WithOutline(true)
 
-		for i := 0; i < 12; i++ {
+		for i := range 12 {
 			g.draw.Sprite(i*7, 12, letters, i, textOps)
 		}
 
 		textOps.WithAlpha(uint8(g.count))
-		for i := 0; i < 12; i++ {
+		for i := range 12 {
 			g.draw.Sprite(i*7, 24, letters, i, textOps)
 		}
+
+		return nil
+	}
+}
+
+func (g *Game) drawArrow() func(engine.Canvas) error {
+
+	arrow, err := sprite.FromP5(pgm.Arrow)
+	if err != nil {
+		panic(err)
+	}
+
+	opts := draw.NewSpriteOpts()
+
+	return func(c engine.Canvas) error {
+		if g.keypad.Pressed(engine.K3) {
+			opts.HFlip = !opts.HFlip
+		}
+		if g.keypad.Pressed(engine.K1) {
+			opts.VFlip = !opts.VFlip
+		}
+		if g.keypad.Pressed(engine.K2) {
+			opts.Rotation++
+			if opts.Rotation > 3 {
+				opts.Rotation = 0
+			}
+		}
+		g.draw.Sprite(42-24, 0, arrow, 0, opts)
 
 		return nil
 	}
@@ -104,6 +133,7 @@ func main() {
 		g.items,
 		Item{draw: g.drawSphere(), name: "Sphere"},
 		Item{draw: g.drawLetters(), name: "Fading"},
+		Item{draw: g.drawArrow(), name: "Transforms"},
 	)
 	platform.Run(g)
 }

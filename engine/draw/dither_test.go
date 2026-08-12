@@ -29,7 +29,7 @@ func TestDitherSprite(t *testing.T) {
 				y := tc.y[i]
 				d, v := draw.DitherSprite(x, y, tc.shade)
 				require.Equal(t, tc.draw, d)
-				require.Equal(t, tc.value, v, "x %d, y %d", x, y)
+				require.Equal(t, tc.value, v, "i: %d, x %d, y %d", i, x, y)
 			}
 		})
 	}

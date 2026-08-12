@@ -28,7 +28,7 @@ func DitherSprite(x, y int, sample uint8) (draw bool, value bool) {
 		return true, false
 	}
 	level := ((sample >> 3) & 0x1f)
-	inkCoverage := 64 - 2*level
+	inkCoverage := 63 - 2*level
 	return true, Bayer64(x, y, inkCoverage)
 }
 

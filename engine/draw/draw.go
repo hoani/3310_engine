@@ -10,6 +10,15 @@ import (
 var PixelOff = color.RGBA{0, 0, 0, 255}
 var PixelOn = color.RGBA{255, 255, 255, 255}
 
+type Rotation uint8
+
+const (
+	Rot0 Rotation = iota
+	Rot90
+	Rot180
+	Rot270
+)
+
 type Point struct {
 	X int
 	Y int
@@ -25,7 +34,7 @@ type Draw interface {
 	Oval(center Point, width int16, height int16) *ShapeBuilder
 	Rectangle(x0, y0, x1, y1 int) *ShapeBuilder
 	Line(x0, y0, x1, y1 int) *ShapeBuilder
-	Sprite(x, y int, spr engine.Sprite, index int, opts *Opts)
+	Sprite(x, y int, spr engine.Sprite, index int, opts *SpriteOpts)
 	Text(x, y int, str string) *TextBuilder
 }
 

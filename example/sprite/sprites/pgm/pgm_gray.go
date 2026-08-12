@@ -5,6 +5,9 @@ import (
 	_ "embed"
 )
 
+//go:embed "arrow.pgm"
+var Arrow string
+
 //go:embed "gradsphere.pgm"
 var Gradsphere string
 
