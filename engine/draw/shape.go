@@ -140,14 +140,19 @@ func (b *CircleBuilder) Draw(drawPixel drawPixel) {
 	offset := (1 + d) % 2
 	radius := (1 + d) / 2
 
-	for j := 0; j < radius; j++ {
+	last := 0
+
+	for j := radius-1; j >= 0; j-- {
 		v := 2*j + offset
 		v2 := v * v
 		for i := 0; i < radius; i++ {
-			u := 2*i + offset
-			u2 := u * u
-			if u2+v2 >= d2 {
-				break
+			if i >= last {
+				u := 2*i + offset
+				u2 := u * u
+				if u2+v2 >= d2 {
+					last = i
+					break
+				}
 			}
 			x0 := (b.center.X - i) - offset
 			y0 := (b.center.Y - j) - offset
