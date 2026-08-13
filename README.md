@@ -16,7 +16,7 @@ wasmserve ./example/snd
 Compiling
 
 ```
-./tools/build/wasm.sh ./examples/sprite 
+./tools/build/build.sh wasm ./examples/sprite 
 ```
 
-The tools/build/wasm.sh tool should be copied to your project.
+The tools/build/build.sh tool should be copied to your project.
