@@ -132,6 +132,20 @@ func (g *Game) drawRectangle(canvas engine.Canvas) error {
 	return nil
 }
 
+func (g *Game) drawFlashing(canvas engine.Canvas) error {
+	c := true
+	if g.count%2 == 0 {
+		c = false
+	}
+	opts := draw.NewOpts()
+	canvas.Clear(c)
+
+	g.draw.Rectangle(0, 0, 16, 16).Draw(false, opts)
+	g.draw.Rectangle(84-16, 0, 84, 16).Draw(true, opts)
+
+	return nil
+}
+
 func (g *Game) drawLine(canvas engine.Canvas) error {
 	opts := draw.NewOpts()
 
@@ -155,7 +169,30 @@ func (g *Game) drawLine(canvas engine.Canvas) error {
 	g.draw.Line(4, 16, 4, 32).Draw(true, opts)
 	g.draw.Line(4, 32, 16, 44).Draw(true, opts)
 	g.draw.Line(16, 44, 32, 44).Draw(true, opts)
+
+	g.draw.Line(82, 4, 60, 44).Draw(true, opts)
+	g.draw.Line(60-2, 44, 82-2, 4).Draw(true, opts)
 	return nil
+}
+
+func (g *Game) drawShapes(opts *draw.Opts) func(canvas engine.Canvas) error {
+
+	return func(canvas engine.Canvas) error {
+
+		c := true
+		if g.count%3 == 0 {
+			c = false
+		}
+		canvas.Clear(c)
+
+		g.draw.Rectangle(16, 16, 32, 32).Draw(true, opts)
+		g.draw.Circle(draw.P(32, 24), 19).Draw(true, opts)
+		g.draw.Triangle(draw.P(58, 8), draw.P(72, 44), draw.P(44, 44)).Draw(true, opts)
+		g.draw.Oval(draw.P(8, 32), 9, 13).Draw(true, opts)
+		g.draw.Oval(draw.P(8, 12), 13, 5).Draw(true, opts)
+
+		return nil
+	}
 }
 
 func main() {
@@ -169,11 +206,15 @@ func main() {
 	}
 	g.items = append(
 		g.items,
+		Item{draw: g.drawLine, name: "Line"},
+		Item{draw: g.drawShapes(draw.NewOpts().WithOutline(false)), name: "With Outline"},
+		Item{draw: g.drawShapes(draw.NewOpts().WithOutlineOnly()), name: "Outline Only"},
+		Item{draw: g.drawShapes(draw.NewOpts()), name: "No Outlines"},
 		Item{draw: g.drawOval, name: "Oval"},
 		Item{draw: g.drawTriangle, name: "Triangle"},
 		Item{draw: g.drawCircle, name: "Circles"},
 		Item{draw: g.drawRectangle, name: "Rectangle"},
-		Item{draw: g.drawLine, name: "Line"},
+		Item{draw: g.drawFlashing, name: "Flashing"},
 	)
 	platform.Run(g)
 }

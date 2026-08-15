@@ -36,7 +36,8 @@ type Gradient interface {
 }
 
 type ShapeDrawer interface {
-	Draw(drawPixel drawPixel)
+	Fill(drawPixel drawPixel)
+	Outline(drawPixel drawPixel)
 }
 
 type ShapeBuilder struct {
@@ -72,12 +73,17 @@ func (b *ShapeBuilder) DrawShade(shade uint8, opts *Opts) {
 	}
 	b.opts = opts
 	b.shade = shade
-	if shade == 0xff {
-		b.active.Draw(b.drawPaper)
-	} else if shade == 0x00 {
-		b.active.Draw(b.drawInk)
-	} else {
-		b.active.Draw(b.drawDither)
+	switch shade {
+	case 0xff:
+		b.active.Fill(b.drawPaper)
+	case 0x00:
+		b.active.Fill(b.drawInk)
+	default:
+		b.active.Fill(b.drawDither)
+	}
+
+	if opts.Outline.Apply {
+		b.active.Outline(b.drawPixelInk(opts.Outline.Ink))
 	}
 	b.active = nil
 }
@@ -87,12 +93,24 @@ func (b *ShapeBuilder) Draw(on bool, opts *Opts) {
 		return
 	}
 	b.opts = opts
-	if !on {
-		b.active.Draw(b.drawPaper)
+
+	if opts.Outline.Only {
+		b.active.Outline(b.drawPixelInk(on))
 	} else {
-		b.active.Draw(b.drawInk)
+		b.active.Fill(b.drawPixelInk(on))
+	}
+
+	if opts.Outline.Apply {
+		b.active.Outline(b.drawPixelInk(opts.Outline.Ink))
 	}
 	b.active = nil
+}
+
+func (b *ShapeBuilder) drawPixelInk(on bool) drawPixel {
+	if !on {
+		return b.drawPaper
+	}
+	return b.drawInk
 }
 
 func (b *ShapeBuilder) DrawGradient(gradient Gradient, opts *Opts) {
@@ -101,7 +119,12 @@ func (b *ShapeBuilder) DrawGradient(gradient Gradient, opts *Opts) {
 	}
 	b.opts = opts
 	b.gradient = gradient
-	b.active.Draw(b.drawGradient)
+	b.active.Fill(b.drawGradient)
+
+	if opts.Outline.Apply {
+		b.active.Outline(b.drawPixelInk(opts.Outline.Ink))
+	}
+
 	b.active = nil
 }
 
@@ -118,12 +141,19 @@ func (sb *ShapeBuilder) Rectangle(p0, p1 Point) *ShapeBuilder {
 	return sb
 }
 
-func (b *RectangleBuilder) Draw(drawPixel drawPixel) {
+func (b *RectangleBuilder) Fill(drawPixel drawPixel) {
 	for x := b.p0.X; x < b.p1.X; x++ {
 		for y := b.p0.Y; y < b.p1.Y; y++ {
 			drawPixel(x, y)
 		}
 	}
+}
+
+func (b *RectangleBuilder) Outline(drawPixel drawPixel) {
+	line(drawPixel, b.p0, Point{b.p1.X, b.p0.Y})
+	line(drawPixel, Point{b.p1.X, b.p0.Y}, b.p1)
+	line(drawPixel, b.p0, Point{b.p0.X, b.p1.Y})
+	line(drawPixel, Point{b.p0.X, b.p1.Y}, b.p1)
 }
 
 func (sb *ShapeBuilder) Circle(center Point, diameter int16) *ShapeBuilder {
@@ -134,7 +164,7 @@ func (sb *ShapeBuilder) Circle(center Point, diameter int16) *ShapeBuilder {
 	return sb
 }
 
-func (b *CircleBuilder) Draw(drawPixel drawPixel) {
+func (b *CircleBuilder) draw(drawPixel drawPixel, fill bool) {
 	d := int(b.diameter)
 	d2 := d * d
 	offset := (1 + d) % 2
@@ -142,29 +172,45 @@ func (b *CircleBuilder) Draw(drawPixel drawPixel) {
 
 	last := 0
 
-	for j := radius-1; j >= 0; j-- {
+	for j := radius - 1; j >= 0; j-- {
 		v := 2*j + offset
 		v2 := v * v
+		lineDone := false
 		for i := 0; i < radius; i++ {
-			if i >= last {
-				u := 2*i + offset
-				u2 := u * u
-				if u2+v2 >= d2 {
-					last = i
-					break
-				}
-			}
 			x0 := (b.center.X - i) - offset
 			y0 := (b.center.Y - j) - offset
 			x1 := b.center.X + i
 			y1 := b.center.Y + j
 
-			drawPixel(x0, y0)
-			drawPixel(x1, y0)
-			drawPixel(x0, y1)
-			drawPixel(x1, y1)
+			if i >= last {
+				u := 2*(i+1) + offset
+				u2 := u * u
+				if u2+v2 > d2 {
+					last = i
+					lineDone = true
+				}
+			}
+
+			if fill || j == radius-1 || lineDone || i > last {
+				drawPixel(x0, y0)
+				drawPixel(x1, y0)
+				drawPixel(x0, y1)
+				drawPixel(x1, y1)
+			}
+
+			if lineDone {
+				break
+			}
 		}
 	}
+}
+
+func (b *CircleBuilder) Fill(drawPixel drawPixel) {
+	b.draw(drawPixel, true)
+}
+
+func (b *CircleBuilder) Outline(drawPixel drawPixel) {
+	b.draw(drawPixel, false)
 }
 
 func (sb *ShapeBuilder) Oval(center Point, width, height int16) *ShapeBuilder {
@@ -176,7 +222,7 @@ func (sb *ShapeBuilder) Oval(center Point, width, height int16) *ShapeBuilder {
 	return sb
 }
 
-func (b *OvalBuilder) Draw(drawPixel drawPixel) {
+func (b *OvalBuilder) draw(drawPixel drawPixel, fill bool) {
 	// Uses equation 1 = (x-xc)^2/a^2 + (y-yc)^2/b^2
 	// Where:
 	//   a = horizontal radius
@@ -199,24 +245,45 @@ func (b *OvalBuilder) Draw(drawPixel drawPixel) {
 	xoffset := int((1 + b.width) % 2)
 	yoffset := int((1 + b.height) % 2)
 
-	for j := 0; j < jmax; j++ {
+	last := 0
+
+	for j := jmax - 1; j >= 0; j-- {
 		limit := w2*h2 - 4*j*j*w2
+		lineDone := false
 		for i := 0; i < imax; i++ {
-			check := 4 * i * i * h2
-			if check > limit {
-				break // We are done on this line
+			if i >= last {
+				check := 4 * (i + 1) * (i + 1) * h2
+				if check > limit {
+					last = i
+					lineDone = true
+				}
 			}
+
 			x0 := (b.center.X - i) - xoffset
 			y0 := (b.center.Y - j) - yoffset
 			x1 := b.center.X + i
 			y1 := b.center.Y + j
 
-			drawPixel(x0, y0)
-			drawPixel(x1, y0)
-			drawPixel(x0, y1)
-			drawPixel(x1, y1)
+			if fill || j == jmax-1 || lineDone || i > last {
+				drawPixel(x0, y0)
+				drawPixel(x1, y0)
+				drawPixel(x0, y1)
+				drawPixel(x1, y1)
+			}
+
+			if lineDone {
+				break // We are done on this line
+			}
 		}
 	}
+}
+
+func (b *OvalBuilder) Fill(drawPixel drawPixel) {
+	b.draw(drawPixel, true)
+}
+
+func (b *OvalBuilder) Outline(drawPixel drawPixel) {
+	b.draw(drawPixel, false)
 }
 
 func (sb *ShapeBuilder) Triangle(p0, p1, p2 Point) *ShapeBuilder {
@@ -228,8 +295,14 @@ func (sb *ShapeBuilder) Triangle(p0, p1, p2 Point) *ShapeBuilder {
 	return sb
 }
 
-func (b *TriangleBuilder) Draw(drawPixel drawPixel) {
+func (b *TriangleBuilder) Fill(drawPixel drawPixel) {
 	filledTriangle(drawPixel, b.p0, b.p1, b.p2)
+}
+
+func (b *TriangleBuilder) Outline(drawPixel drawPixel) {
+	line(drawPixel, b.p0, b.p1)
+	line(drawPixel, b.p0, b.p2)
+	line(drawPixel, b.p1, b.p2)
 }
 
 func (sb *ShapeBuilder) Line(p0, p1 Point) *ShapeBuilder {
@@ -240,7 +313,11 @@ func (sb *ShapeBuilder) Line(p0, p1 Point) *ShapeBuilder {
 	return sb
 }
 
-func (b *LineBuilder) Draw(drawPixel drawPixel) {
+func (b *LineBuilder) Fill(drawPixel drawPixel) {
+	line(drawPixel, b.p0, b.p1)
+}
+
+func (b *LineBuilder) Outline(drawPixel drawPixel) {
 	line(drawPixel, b.p0, b.p1)
 }
 
@@ -328,8 +405,12 @@ func line(drawPixel drawPixel, p0, p1 Point) {
 	xmax := imax(p0.X, p1.X)
 
 	width := p1.X - p0.X
+	sign := 1
+	if width < 0 {
+		sign = -1
+	}
 
-	gradient := 0xffff * (width + 1) / (height + 1)
+	gradient := 0xffff * (width + sign) / (height + 1)
 
 	for y := p0.Y; y <= p1.Y; y++ {
 

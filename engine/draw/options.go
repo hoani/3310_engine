@@ -5,6 +5,7 @@ var DefaultOpts = Opts{}
 type OutlineOpts struct {
 	Apply bool
 	Ink   bool
+	Only bool
 }
 
 type DitherFunc func(x, y int, value uint8) bool
@@ -33,6 +34,11 @@ func (o *Opts) WithInvert() *Opts {
 func (o *Opts) WithOutline(set bool) *Opts {
 	o.Outline.Apply = true
 	o.Outline.Ink = set
+	return o
+}
+
+func (o *Opts) WithOutlineOnly() *Opts {
+	o.Outline.Only = true
 	return o
 }
 
