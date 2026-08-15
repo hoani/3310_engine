@@ -195,6 +195,41 @@ func (g *Game) drawShapes(opts *draw.Opts) func(canvas engine.Canvas) error {
 	}
 }
 
+func (g *Game) drawTriangleFan(fill bool, opts *draw.Opts) func(canvas engine.Canvas) error {
+	ts := draw.NewTriangleFan(
+		draw.P(16, 24),
+		draw.P(16, 16),
+		draw.P(24, 24),
+	)
+
+	tso := draw.NewTriangleFan(
+		draw.P(24+16, 24),
+		draw.P(24+16, 16),
+		draw.P(24+24, 24),
+		draw.P(24+16, 32),
+		draw.P(24+8, 24),
+	)
+
+	ts1 := draw.NewTriangleFan(
+		draw.P(48+16, 24),
+		draw.P(48+16, 16),
+		draw.P(48+24, 24),
+		draw.P(48+16, 32),
+		draw.P(48+8, 24),
+		draw.P(48+16, 16),
+	)
+
+	return func(canvas engine.Canvas) error {
+		canvas.Clear(false)
+
+		g.draw.Shape(ts).Draw(fill, opts)
+		g.draw.Shape(tso).Draw(fill, opts)
+		g.draw.Shape(ts1).Draw(fill, opts)
+
+		return nil
+	}
+}
+
 func (g *Game) drawTriangleStrip(fill bool, opts *draw.Opts) func(canvas engine.Canvas) error {
 	ts := draw.NewTriangleStrip(
 		draw.P(4, 34),
@@ -240,6 +275,8 @@ func main() {
 	g.items = append(
 		g.items,
 		Item{draw: g.drawLine, name: "Line"},
+		Item{draw: g.drawTriangleFan(true, draw.NewOpts()), name: "TriangleFan"},
+		Item{draw: g.drawTriangleFan(true, draw.NewOpts().WithOutlineOnly()), name: "TriangleFan Outline"},
 		Item{draw: g.drawTriangleStrip(true, draw.NewOpts()), name: "TriangleStrip"},
 		Item{draw: g.drawTriangleStrip(true, draw.NewOpts().WithOutlineOnly()), name: "TriangleStrip Outline"},
 		Item{draw: g.drawShapes(draw.NewOpts().WithOutline(false)), name: "With Outline"},

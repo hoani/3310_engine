@@ -4,8 +4,20 @@ type triangleStrip struct {
 	points []Point
 }
 
+type triangleFan struct {
+	center Point
+	points []Point
+}
+
 func NewTriangleStrip(points ...Point) ShapeDrawer {
 	return &triangleStrip{
+		points: points,
+	}
+}
+
+func NewTriangleFan(center Point, points ...Point) ShapeDrawer {
+	return &triangleFan{
+		center: center,
 		points: points,
 	}
 }
@@ -44,6 +56,35 @@ func (s triangleStrip) Outline(drawPixel drawPixel) {
 		}
 		line(drawPixel, s.points[i], s.points[i+2])
 		line(drawPixel, s.points[i+1], s.points[i+3])
+	}
+}
+
+func (s triangleFan) Fill(drawPixel drawPixel) {
+	for i := range s.points {
+		if (len(s.points) - i) < 2 {
+			break
+		}
+		filledTriangle(drawPixel, s.center, s.points[i], s.points[i+1])
+	}
+	s.Outline(drawPixel)
+}
+
+func (s triangleFan) Outline(drawPixel drawPixel) {
+	n := len(s.points)
+	if n < 2 {
+		return
+	}
+
+	if s.points[0] != s.points[n-1] {
+		line(drawPixel, s.points[0], s.center)
+		line(drawPixel, s.center, s.points[n-1])
+	}
+
+	for i := range s.points {
+		if (len(s.points) - i) < 2 {
+			break
+		}
+		line(drawPixel, s.points[i], s.points[i+1])
 	}
 }
 
