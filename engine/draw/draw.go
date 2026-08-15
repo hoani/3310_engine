@@ -30,6 +30,7 @@ func P(x, y int) Point {
 
 type Draw interface {
 	Triangle(p0, p1, p2 Point) *ShapeBuilder
+	Shape(s ShapeDrawer) *ShapeBuilder
 	Circle(center Point, radius int16) *ShapeBuilder
 	Oval(center Point, width int16, height int16) *ShapeBuilder
 	Rectangle(x0, y0, x1, y1 int) *ShapeBuilder
@@ -65,6 +66,10 @@ func (d *draw) Text(x, y int, str string) *TextBuilder {
 
 func (d *draw) Rectangle(x0, y0, x1, y1 int) *ShapeBuilder {
 	return d.shapeBuilder.Rectangle(P(x0, y0), P(x1, y1))
+}
+
+func (d *draw) Shape(s ShapeDrawer) *ShapeBuilder {
+	return d.shapeBuilder.Shape(s)
 }
 
 func (d *draw) Line(x0, y0, x1, y1 int) *ShapeBuilder {

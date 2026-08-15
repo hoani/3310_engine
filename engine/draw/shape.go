@@ -29,6 +29,15 @@ type TriangleBuilder struct {
 	p0, p1, p2 Point
 }
 
+type TStripBuilder struct {
+	points []Point
+}
+
+type TFanBuilder struct {
+	center Point
+	points []Point
+}
+
 type drawPixel func(x, y int)
 
 type Gradient interface {
@@ -138,6 +147,11 @@ func (sb *ShapeBuilder) Rectangle(p0, p1 Point) *ShapeBuilder {
 		b.p1.Y, b.p0.Y = b.p0.Y, b.p1.Y
 	}
 	sb.active = b
+	return sb
+}
+
+func (sb *ShapeBuilder) Shape(s ShapeDrawer) *ShapeBuilder {
+	sb.active = s
 	return sb
 }
 
@@ -297,6 +311,7 @@ func (sb *ShapeBuilder) Triangle(p0, p1, p2 Point) *ShapeBuilder {
 
 func (b *TriangleBuilder) Fill(drawPixel drawPixel) {
 	filledTriangle(drawPixel, b.p0, b.p1, b.p2)
+	b.Outline(drawPixel) // Smooth out some edges
 }
 
 func (b *TriangleBuilder) Outline(drawPixel drawPixel) {

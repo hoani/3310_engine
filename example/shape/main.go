@@ -195,6 +195,39 @@ func (g *Game) drawShapes(opts *draw.Opts) func(canvas engine.Canvas) error {
 	}
 }
 
+func (g *Game) drawTriangleStrip(fill bool, opts *draw.Opts) func(canvas engine.Canvas) error {
+	ts := draw.NewTriangleStrip(
+		draw.P(4, 34),
+		draw.P(16, 44),
+		draw.P(26, 36),
+		draw.P(44, 44),
+		draw.P(82, 34),
+	)
+
+	tso := draw.NewTriangleStrip(
+		draw.P(32, 14),
+		draw.P(32, 18),
+		draw.P(48, 28),
+		draw.P(40, 24),
+		draw.P(16, 28),
+		draw.P(24, 24),
+		draw.P(32, 14),
+		draw.P(32, 18),
+	)
+
+	ts1 := draw.NewTriangleStrip(draw.P(72, 28), draw.P(80, 24), draw.P(64, 16))
+
+	return func(canvas engine.Canvas) error {
+		canvas.Clear(false)
+
+		g.draw.Shape(ts).Draw(fill, opts)
+		g.draw.Shape(tso).Draw(fill, opts)
+		g.draw.Shape(ts1).Draw(fill, opts)
+
+		return nil
+	}
+}
+
 func main() {
 	sphere, err := sprite.FromP5(pgm.Gradsphere)
 	if err != nil {
@@ -207,6 +240,8 @@ func main() {
 	g.items = append(
 		g.items,
 		Item{draw: g.drawLine, name: "Line"},
+		Item{draw: g.drawTriangleStrip(true, draw.NewOpts()), name: "TriangleStrip"},
+		Item{draw: g.drawTriangleStrip(true, draw.NewOpts().WithOutlineOnly()), name: "TriangleStrip Outline"},
 		Item{draw: g.drawShapes(draw.NewOpts().WithOutline(false)), name: "With Outline"},
 		Item{draw: g.drawShapes(draw.NewOpts().WithOutlineOnly()), name: "Outline Only"},
 		Item{draw: g.drawShapes(draw.NewOpts()), name: "No Outlines"},
