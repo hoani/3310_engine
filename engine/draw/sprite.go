@@ -13,6 +13,31 @@ func NewSpriteOpts() *SpriteOpts {
 	return &SpriteOpts{Opts: *NewOpts(), HFlip: false, VFlip: false, Rotation: Rot0}
 }
 
+func (o *SpriteOpts) WithInvert() *SpriteOpts {
+	o.Opts.WithInvert()
+	return o
+}
+
+func (o *SpriteOpts) WithOutline(set bool) *SpriteOpts {
+	o.Opts.WithOutline(set)
+	return o
+}
+
+func (o *SpriteOpts) WithOutlineOnly() *SpriteOpts {
+	o.Opts.WithOutlineOnly()
+	return o
+}
+
+func (o *SpriteOpts) WithAlpha(amount uint8) *SpriteOpts {
+	o.Opts.WithAlpha(amount)
+	return o
+}
+
+func (o *SpriteOpts) WithAlphaCustom(amount uint8, dither DitherFunc) *SpriteOpts {
+	o.WithAlphaCustom(amount, dither)
+	return o
+}
+
 func (o *SpriteOpts) Transform(xi, yi, w, h int) (xo, yo int) {
 	xr := 2*xi - (w - 1)
 	yr := 2*yi - (h - 1)
@@ -43,8 +68,9 @@ func (d *draw) Sprite(x, y int, spr engine.Sprite, index int, opts *SpriteOpts) 
 	j0 := 0
 	j1 := spr.Height()
 
+	applyOutline := opts.Outline.Apply || opts.Outline.Only
 	outlineInk := opts.Outline.Ink
-	if opts.Outline.Apply {
+	if applyOutline {
 		i0 -= 1
 		i1 += 1
 		j0 -= 1
@@ -69,11 +95,13 @@ func (d *draw) Sprite(x, y int, spr engine.Sprite, index int, opts *SpriteOpts) 
 				if opts.Invert {
 					on = !on
 				}
-				d.c.Set(x+i, y+j, on)
+				if !opts.Outline.Only {
+					d.c.Set(x+i, y+j, on)
+				}
 				continue
 			}
 
-			if opts.Outline.Apply {
+			if applyOutline {
 				if spr.At(sampleX-1, sampleY, index) != engine.SpriteTransparent ||
 					spr.At(sampleX+1, sampleY, index) != engine.SpriteTransparent ||
 					spr.At(sampleX, sampleY-1, index) != engine.SpriteTransparent ||

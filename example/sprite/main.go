@@ -97,6 +97,39 @@ func (g *Game) drawLetters() func(engine.Canvas) error {
 	}
 }
 
+func (g *Game) drawOutlines() func(engine.Canvas) error {
+
+	letters, err := sprite.StripFromP5(pgm.ClassicLight, 7)
+	if err != nil {
+		panic(err)
+	}
+
+	lineOps := draw.NewOpts()
+	noneOps := draw.NewSpriteOpts().WithInvert()
+	outlineOps := draw.NewSpriteOpts().WithOutline(true)
+	outlineOnlyOps := draw.NewSpriteOpts().WithOutlineOnly().WithInvert()
+
+	return func(c engine.Canvas) error {
+
+		g.draw.Line(0, 16, 84, 16).Draw(true, lineOps)
+		for i := range 10 {
+			g.draw.Sprite(7+i*7, 12, letters, i, noneOps)
+		}
+
+		g.draw.Line(0, 28, 84, 28).Draw(true, lineOps)
+		for i := range 10 {
+			g.draw.Sprite(7+i*7, 24, letters, i, outlineOps)
+		}
+
+		g.draw.Line(0, 40, 84, 40).Draw(true, lineOps)
+		for i := range 10 {
+			g.draw.Sprite(7+i*7, 36, letters, i, outlineOnlyOps)
+		}
+
+		return nil
+	}
+}
+
 func (g *Game) drawArrow() func(engine.Canvas) error {
 
 	arrow, err := sprite.FromP5(pgm.Arrow)
@@ -132,6 +165,7 @@ func main() {
 	g.items = append(
 		g.items,
 		Item{draw: g.drawSphere(), name: "Sphere"},
+		Item{draw: g.drawOutlines(), name: "Outlines"},
 		Item{draw: g.drawLetters(), name: "Fading"},
 		Item{draw: g.drawArrow(), name: "Transforms"},
 	)
