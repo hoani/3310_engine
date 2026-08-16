@@ -1,4 +1,4 @@
-// tinyfnotgen-ttf -fontname EffortsPro -package font -output font/efforts_pro.go font/ttf/EffortsPro.ttf -yadvance 7 -dpi 96
+// tinyfnotgen-ttf -fontname EffortsPro -package font -output font/efforts_pro.go font/ttf/EffortsPro.ttf -yadvance 8 -dpi 96
 
 package font
 
@@ -9,7 +9,7 @@ import (
 var EffortsPro = const2bit.Font{
 	OffsetMap: mEffortsPro,
 	Data:      dEffortsPro,
-	YAdvance:  7,
+	YAdvance:  8,
 	Name:      "EffortsPro",
 }
 
