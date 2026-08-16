@@ -4,6 +4,7 @@ import (
 	"github.com/hoani/3310_engine/engine"
 	"github.com/hoani/3310_engine/engine/command"
 	"github.com/hoani/3310_engine/engine/draw"
+	"github.com/hoani/3310_engine/engine/text"
 	"github.com/hoani/3310_engine/example/text/font"
 	"github.com/hoani/3310_engine/platform"
 	"tinygo.org/x/tinyfont"
@@ -104,6 +105,32 @@ func (g *Game) drawAlignment(f tinyfont.Fonter, opts *draw.Opts) func(canvas eng
 
 		return nil
 	}
+}
+
+func (g *Game) drawNarrate() func(canvas engine.Canvas) error {
+	f := &font.EffortsPro
+
+	strings := []string{
+		"I'll be your dream, I'll be your wish, I'll be your fantasy",
+		"I'll be your hope, I'll be your love, be everything that you need",
+		"I love you more with every breath truly, madly, deeply do",
+		"I will be strong, I will be faithful 'cause I'm counting on",
+	}
+
+	index := 0
+
+	n := text.New(4, 8, 84-8, f, strings[index])
+
+	return func(canvas engine.Canvas) error {
+		n.Update(1, 0)
+
+		if n.Done() && g.keypad.Pressed(engine.K5) {
+			index = (index + 1) % len(strings)
+			n.Reset(strings[index])
+		}
+		n.Draw(g.draw, true)
+		return nil
+	}
 
 }
 
@@ -116,6 +143,7 @@ func main() {
 		Item{draw: g.drawAlignment(&font.EffortsPro, draw.NewOpts().WithOutline(false).WithInvert()), name: "Align efforts outlined"},
 		Item{draw: g.drawAlignment(&font.Tiny, draw.NewOpts()), name: "Align tiny"},
 		Item{draw: g.drawAlignment(&font.Tiny, draw.NewOpts().WithOutline(false).WithInvert()), name: "Align tiny outlined"},
+		Item{draw: g.drawNarrate(), name: "Draw Narrate"},
 	)
 
 	platform.Run(g)

@@ -116,15 +116,3 @@ func (t *TextBuilder) WriteLines(x, y int) {
 	}
 
 }
-
-func LineWidth(f tinyfont.Fonter, s string) int {
-	parts := strings.Split(s, "\n")
-	w := 0
-	for _, part := range parts {
-		pw, _ := tinyfont.LineWidth(f, part)
-		if int(pw) > w {
-			w = int(pw)
-		}
-	}
-	return w
-}
