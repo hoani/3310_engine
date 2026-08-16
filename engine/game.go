@@ -2,14 +2,6 @@ package engine
 
 import "github.com/hoani/3310_engine/engine/command"
 
-type Canvas interface {
-	Clear(set bool)
-	Width() int
-	Height() int
-	Set(x, y int, val bool)
-	Get(x, y int) bool
-}
-
 type Debug interface {
 	Console(format string, args ...any)
 }

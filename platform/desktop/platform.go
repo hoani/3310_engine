@@ -102,7 +102,7 @@ func (p *Platform) Draw(screen *ebiten.Image) {
 	fps := float64(ebiten.ActualFPS())
 	dt = math.Min(2.0/fps, math.Max(dt, 0.5/fps)) // clamp to ride through stalls.
 
-	c := ebiten.NewImageFromImage(p.canvas.image)
+	c := ebiten.NewImageFromImage(p.canvas.Image())
 
 	prev := ebiten.NewImageFromImage(p.shadowing)
 	opts := &ebiten.DrawRectShaderOptions{}
