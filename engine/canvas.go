@@ -74,27 +74,32 @@ func (c *canvas) Buffer() []byte {
 }
 
 func (c *canvas) DrawSurface(x, y int, s Surface) {
-	start := x + (y/8)*c.w
 	yshift := y % 8
+	if yshift < 0 {
+		yshift += 8
+	}
+	start := x + (y/8)*c.w
+	if y < 0 && yshift != 0 {
+		start -= c.w
+	}
 
 	ink := s.Ink()
 	paper := s.Paper()
 
 	sw := s.Width()
 	rowOffset := c.w - sw
-	applyRowEnd := false
 	rowEnd := c.w - x
-	if x+sw > c.w {
-		applyRowEnd = true
-	}
+	rowStart := -x
 
 	for i := range ink {
 		// Avoid drawing beyond the row end.
-		if applyRowEnd && (i%sw) > rowEnd {
+		if (i%sw) < rowStart || (i%sw) > rowEnd {
 			continue
 		}
 		idx := start + i + rowOffset*(i/sw)
-
+		if idx < 0 {
+			continue
+		}
 		if idx >= len(c.buffer) {
 			break
 		}
@@ -106,11 +111,13 @@ func (c *canvas) DrawSurface(x, y int, s Surface) {
 		start += c.w
 		for i := range ink {
 			// Avoid drawing beyond the row end.
-			if rowEnd != 0 && (i%sw) > rowEnd {
+			if (i%sw) < rowStart || (i%sw) > rowEnd {
 				continue
 			}
-
 			idx := start + i + rowOffset*(i/sw)
+			if idx < 0 {
+				continue
+			}
 			if idx >= len(c.buffer) {
 				break
 			}

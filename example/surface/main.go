@@ -58,7 +58,7 @@ func (g *Game) Draw(canvas engine.Canvas) error {
 	return nil
 }
 
-func (g *Game) drawStress(useSurface bool) func(canvas engine.Canvas) error {
+func (g *Game) drawStress(useSurface bool, spd int) func(canvas engine.Canvas) error {
 
 	drawFunc := func(d draw.Draw) error {
 		opts := draw.NewOpts()
@@ -88,7 +88,9 @@ func (g *Game) drawStress(useSurface bool) func(canvas engine.Canvas) error {
 			drawFunc(d)
 		}
 
-		canvas.DrawSurface(0, 0, surf)
+		xpos := (g.count/8)%84 - 42
+		ypos := (g.count/8)%48 - 24
+		canvas.DrawSurface(spd*xpos, spd*ypos, surf)
 		return nil
 	}
 }
@@ -104,8 +106,9 @@ func main() {
 	}
 	g.items = append(
 		g.items,
-		Item{draw: g.drawStress(false), name: "No Surface"},
-		Item{draw: g.drawStress(true), name: "With Surface"},
+		Item{draw: g.drawStress(false, 0), name: "No Surface"},
+		Item{draw: g.drawStress(true, 0), name: "With Surface"},
+		Item{draw: g.drawStress(true, 1), name: "Moving"},
 	)
 	platform.Run(g)
 }

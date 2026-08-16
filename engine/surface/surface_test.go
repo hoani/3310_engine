@@ -42,6 +42,12 @@ func TestSurface(t *testing.T) {
 
 				assert.Equal(t, c.Get(2, 0), tc.ink)
 				assert.Equal(t, c.Get(0, 0), !tc.ink)
+
+				// negative value
+				s.Set(7, 0, tc.ink)
+				c.DrawSurface(-2, 0, s)
+
+				assert.Equal(t, c.Get(5, 0), tc.ink)
 			})
 
 			t.Run("y offset", func(t *testing.T) {
@@ -61,6 +67,11 @@ func TestSurface(t *testing.T) {
 
 				assert.Equal(t, c.Get(0, 9), tc.ink)
 				assert.Equal(t, c.Get(0, 7), !tc.ink)
+
+				// negative value
+				c.DrawSurface(0, -2, s)
+
+				assert.Equal(t, c.Get(0, 5), tc.ink)
 			})
 
 			t.Run("different sizes", func(t *testing.T) {
@@ -85,6 +96,12 @@ func TestSurface(t *testing.T) {
 
 				c.DrawSurface(32, 0, s)
 				assert.Equal(t, c.Get(15, 8), !tc.ink)
+
+				c.DrawSurface(-16, 8, s)
+				assert.Equal(t, c.Get(31, 0), !tc.ink)
+
+				c.DrawSurface(0, -8, s)
+				assert.Equal(t, c.Get(15, 0), !tc.ink)
 			})
 		})
 	}
