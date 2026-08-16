@@ -61,7 +61,9 @@ func (c *surface) Buffer() []byte {
 }
 
 func (c *surface) DrawSurface(x, y int, s engine.Surface) {
-	// Later problem... not sure on this one yet... I guess we want to overlay buffers on top, so | paper on paper, and | ink on ink
+	c.ink.DrawSurface(x, y, s)
+	sw := SwapSurface{s}
+	c.paper.DrawSurface(x, y, &sw)
 }
 
 func (c *surface) Ink() []byte {
@@ -70,4 +72,16 @@ func (c *surface) Ink() []byte {
 
 func (c *surface) Paper() []byte {
 	return c.paper.Buffer()
+}
+
+type SwapSurface struct {
+	engine.Surface
+}
+
+func (c *SwapSurface) Ink() []byte {
+	return c.Surface.Paper()
+}
+
+func (c *SwapSurface) Paper() []byte {
+	return c.Surface.Ink()
 }

@@ -7,19 +7,60 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestSurfaceReset(t *testing.T) {
+	s := New(8, 8)
+	s.Clear(true)
+
+	for _, b := range s.Ink() {
+		assert.Equal(t, uint8(0xFF), b)
+	}
+
+	s.Reset()
+
+	for _, b := range s.Ink() {
+		assert.Equal(t, uint8(0x00), b)
+	}
+
+	s.Clear(false)
+
+	for _, b := range s.Paper() {
+		assert.Equal(t, uint8(0xFF), b)
+	}
+
+	s.Reset()
+
+	for _, b := range s.Paper() {
+		assert.Equal(t, uint8(0x00), b)
+	}
+}
+
 func TestSurface(t *testing.T) {
 	testCases := []struct {
-		name string
-		ink  bool
+		name       string
+		ink        bool
+		canvasFunc func(x, y int) engine.Canvas
 	}{
-		{name: "ink", ink: true},
-		{name: "paper", ink: false},
+		{name: "ink", ink: true, canvasFunc: engine.NewCanvas},
+		{name: "paper", ink: false, canvasFunc: engine.NewCanvas},
+		{name: "surface x surface", ink: true, canvasFunc: func(x, y int) engine.Canvas { return New(x, y) }},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
+
+			t.Run("clear", func(t *testing.T) {
+				s := New(8, 8)
+				s.Clear(tc.ink)
+
+				for i := range s.Width() {
+					for j := range s.Height() {
+						assert.Equal(t, s.Get(i, j), tc.ink)
+					}
+				}
+			})
+
 			t.Run("basic", func(t *testing.T) {
-				c := engine.NewCanvas(8, 8)
+				c := tc.canvasFunc(8, 8)
 				c.Clear(!tc.ink)
 
 				s := New(8, 8)
@@ -32,7 +73,7 @@ func TestSurface(t *testing.T) {
 			})
 
 			t.Run("x offset", func(t *testing.T) {
-				c := engine.NewCanvas(8, 8)
+				c := tc.canvasFunc(8, 8)
 				c.Clear(!tc.ink)
 
 				s := New(8, 8)
@@ -51,7 +92,7 @@ func TestSurface(t *testing.T) {
 			})
 
 			t.Run("y offset", func(t *testing.T) {
-				c := engine.NewCanvas(16, 16)
+				c := tc.canvasFunc(16, 16)
 				c.Clear(!tc.ink)
 
 				s := New(16, 16)
@@ -75,7 +116,7 @@ func TestSurface(t *testing.T) {
 			})
 
 			t.Run("different sizes", func(t *testing.T) {
-				c := engine.NewCanvas(32, 32)
+				c := tc.canvasFunc(32, 32)
 				c.Clear(!tc.ink)
 
 				s := New(16, 16)
