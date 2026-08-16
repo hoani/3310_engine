@@ -96,7 +96,7 @@ func (p *Platform) Draw() error {
 
 func setupPcd(def *board.Pcd) *pcd8544.Device {
 	def.Spi.Configure(machine.SPIConfig{
-		Frequency: 1000000,
+		Frequency: 4000000,
 		SCK:       def.SckPin,
 		SDO:       def.SdoPin,
 		SDI:       def.SdiPin,
