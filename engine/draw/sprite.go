@@ -2,6 +2,22 @@ package draw
 
 import "github.com/hoani/3310_engine/engine"
 
+type SpriteAlign uint8
+
+const (
+	SaTopLeft SpriteAlign = iota
+	SaTop
+	SaTopRight
+	SaLeft
+	SaCenter
+	SaRight
+	SaBottomLeft
+	SaBottom
+	SaBottomRight
+)
+
+const SpriteAlignNum = SaBottomRight + 1
+
 type Window struct {
 	Apply      bool
 	W, H, X, Y int
@@ -13,6 +29,7 @@ type SpriteOpts struct {
 	VFlip    bool
 	Rotation Rotation
 	Window   Window
+	Align    SpriteAlign
 }
 
 func NewSpriteOpts() *SpriteOpts {
@@ -47,6 +64,11 @@ func (o *SpriteOpts) WithWindow(width, height int) *SpriteOpts {
 	return o
 }
 
+func (o *SpriteOpts) WithAlign(align SpriteAlign) *SpriteOpts {
+	o.Align = align
+	return o
+}
+
 func (o *SpriteOpts) WithAlphaCustom(amount uint8, dither DitherFunc) *SpriteOpts {
 	o.WithAlphaCustom(amount, dither)
 	return o
@@ -75,11 +97,38 @@ func (o *SpriteOpts) Transform(xi, yi, w, h int) (xo, yo int) {
 	return (xr + (w - 1)) / 2, (yr + (h - 1)) / 2
 }
 
+func (a SpriteAlign) Apply(x, y, w, h int) (int, int) {
+	w += w % 2
+	switch a {
+	case SaTopLeft:
+		return x, y
+	case SaTop:
+		return x - w/2, y
+	case SaTopRight:
+		return x - w, y
+	case SaLeft:
+		return x, y - h/2
+	case SaCenter:
+		return x - w/2, y - h/2
+	case SaRight:
+		return x - w, y - h/2
+	case SaBottomLeft:
+		return x, y - h
+	case SaBottom:
+		return x - w/2, y - h
+	case SaBottomRight:
+		return x - w, y - h
+	}
+	return x, y
+}
+
 func (d *draw) Sprite(x, y int, spr engine.Sprite, index int, opts *SpriteOpts) {
 
 	w, h := spr.Width(), spr.Height()
 	i0 := 0
 	j0 := 0
+
+	x, y = opts.Align.Apply(x, y, w, h)
 
 	if opts.Window.Apply {
 		w, h = opts.Window.W, opts.Window.H

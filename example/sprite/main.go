@@ -201,6 +201,43 @@ func (g *Game) drawWindowed() func(engine.Canvas) error {
 	}
 }
 
+func (g *Game) drawAlignment() func(engine.Canvas) error {
+
+	letter, err := sprite.StripFromP5(pgm.ClassicLight, 7)
+	if err != nil {
+		panic(err)
+	}
+
+	opts := draw.NewSpriteOpts().WithOutline(true)
+
+	names := []string{
+		"Top Left",
+		"Top",
+		"Top Right",
+		"Left",
+		"Center",
+		"Right",
+		"Bottom Left",
+		"Bottom",
+		"Bottom Right",
+	}
+
+	lopts := draw.NewOpts()
+
+	return func(c engine.Canvas) error {
+		if g.keypad.Pressed(engine.K5) {
+			opts.Align = (opts.Align + 1) % draw.SpriteAlignNum
+		}
+		g.draw.Line(42, 16, 42, 32).Draw(true, lopts)
+		g.draw.Line(16, 24, 68, 24).Draw(true, lopts)
+
+		g.draw.Sprite(42, 24, letter, 0, opts)
+
+		g.draw.Text(42, 46, names[opts.Align]).HAlign(draw.FaCenter).VAlign(draw.FaBottom).Draw(true, nil)
+		return nil
+	}
+}
+
 func main() {
 
 	g := &Game{info: &engine.GameInfo{Debug: true, Fps: 60}}
@@ -209,6 +246,7 @@ func main() {
 		g.items,
 		Item{draw: g.drawSphere(), name: "Sphere"},
 		Item{draw: g.drawWindowed(), name: "Pan"},
+		Item{draw: g.drawAlignment(), name: "Alignment"},
 		Item{draw: g.drawOutlines(), name: "Outlines"},
 		Item{draw: g.drawLetters(), name: "Fading"},
 		Item{draw: g.drawArrow(), name: "Transforms"},
