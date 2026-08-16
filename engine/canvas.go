@@ -7,6 +7,14 @@ type Canvas interface {
 	Set(x, y int, val bool)
 	Get(x, y int) bool
 	Buffer() []byte
+	DrawSurface(x, y int, s Surface)
+}
+
+type Surface interface {
+	Canvas
+	Reset() // All pixels transparent.
+	Ink() []byte
+	Paper() []byte
 }
 
 type canvas struct {
@@ -63,4 +71,51 @@ func (c *canvas) Height() int {
 
 func (c *canvas) Buffer() []byte {
 	return c.buffer
+}
+
+func (c *canvas) DrawSurface(x, y int, s Surface) {
+	start := x + (y/8)*c.w
+	yshift := y % 8
+
+	ink := s.Ink()
+	paper := s.Paper()
+
+	sw := s.Width()
+	rowOffset := c.w - sw
+	applyRowEnd := false
+	rowEnd := c.w - x
+	if x+sw > c.w {
+		applyRowEnd = true
+	}
+
+	for i := range ink {
+		// Avoid drawing beyond the row end.
+		if applyRowEnd && (i%sw) > rowEnd {
+			continue
+		}
+		idx := start + i + rowOffset*(i/sw)
+
+		if idx >= len(c.buffer) {
+			break
+		}
+		c.buffer[idx] |= (ink[i] << yshift)
+		c.buffer[idx] &^= (paper[i] << yshift)
+	}
+	if yshift != 0 {
+		nyshift := 8 - yshift
+		start += c.w
+		for i := range ink {
+			// Avoid drawing beyond the row end.
+			if rowEnd != 0 && (i%sw) > rowEnd {
+				continue
+			}
+
+			idx := start + i + rowOffset*(i/sw)
+			if idx >= len(c.buffer) {
+				break
+			}
+			c.buffer[idx] |= (ink[i] >> nyshift)
+			c.buffer[idx] &^= (paper[i] >> nyshift)
+		}
+	}
 }
