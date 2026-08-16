@@ -8,6 +8,9 @@ import (
 //go:embed "arrow.pgm"
 var Arrow string
 
+//go:embed "beeg.pgm"
+var Beeg string
+
 //go:embed "gradsphere.pgm"
 var Gradsphere string
 

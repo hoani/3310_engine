@@ -2,15 +2,21 @@ package draw
 
 import "github.com/hoani/3310_engine/engine"
 
+type Window struct {
+	Apply      bool
+	W, H, X, Y int
+}
+
 type SpriteOpts struct {
 	Opts
 	HFlip    bool
 	VFlip    bool
 	Rotation Rotation
+	Window   Window
 }
 
 func NewSpriteOpts() *SpriteOpts {
-	return &SpriteOpts{Opts: *NewOpts(), HFlip: false, VFlip: false, Rotation: Rot0}
+	return &SpriteOpts{Opts: *NewOpts(), HFlip: false, VFlip: false, Rotation: Rot0, Window: Window{}}
 }
 
 func (o *SpriteOpts) WithInvert() *SpriteOpts {
@@ -30,6 +36,14 @@ func (o *SpriteOpts) WithOutlineOnly() *SpriteOpts {
 
 func (o *SpriteOpts) WithAlpha(amount uint8) *SpriteOpts {
 	o.Opts.WithAlpha(amount)
+	return o
+}
+
+func (o *SpriteOpts) WithWindow(width, height int) *SpriteOpts {
+	o.Window.Apply = true
+	o.Window.W = width
+	o.Window.H = height
+
 	return o
 }
 
@@ -63,10 +77,18 @@ func (o *SpriteOpts) Transform(xi, yi, w, h int) (xo, yo int) {
 
 func (d *draw) Sprite(x, y int, spr engine.Sprite, index int, opts *SpriteOpts) {
 
+	w, h := spr.Width(), spr.Height()
 	i0 := 0
-	i1 := spr.Width()
 	j0 := 0
-	j1 := spr.Height()
+
+	if opts.Window.Apply {
+		w, h = opts.Window.W, opts.Window.H
+		i0 = opts.Window.X
+		j0 = opts.Window.Y
+	}
+
+	i1 := i0 + w
+	j1 := j0 + h
 
 	applyOutline := opts.Outline.Apply || opts.Outline.Only
 	outlineInk := opts.Outline.Ink
@@ -86,17 +108,17 @@ func (d *draw) Sprite(x, y int, spr engine.Sprite, index int, opts *SpriteOpts) 
 				continue
 			}
 
-			sampleX, sampleY := opts.Transform(i, j, spr.Width(), spr.Height())
+			sampleX, sampleY := opts.Transform(i, j, w, h)
 
 			shade := spr.At(sampleX, sampleY, index)
-			show, on := DitherSprite(x+i, y+j, shade)
+			show, on := DitherSprite(x+i-i0, y+j-j0, shade)
 
 			if show {
 				if opts.Invert {
 					on = !on
 				}
 				if !opts.Outline.Only {
-					d.c.Set(x+i, y+j, on)
+					d.c.Set(x+i-i0, y+j-j0, on)
 				}
 				continue
 			}
@@ -106,7 +128,7 @@ func (d *draw) Sprite(x, y int, spr engine.Sprite, index int, opts *SpriteOpts) 
 					spr.At(sampleX+1, sampleY, index) != engine.SpriteTransparent ||
 					spr.At(sampleX, sampleY-1, index) != engine.SpriteTransparent ||
 					spr.At(sampleX, sampleY+1, index) != engine.SpriteTransparent {
-					d.c.Set(x+i, y+j, outlineInk)
+					d.c.Set(x+i-i0, y+j-j0, outlineInk)
 				}
 			}
 		}

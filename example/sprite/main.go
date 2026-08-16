@@ -5,6 +5,7 @@ import (
 	"github.com/hoani/3310_engine/engine/command"
 	"github.com/hoani/3310_engine/engine/draw"
 	"github.com/hoani/3310_engine/engine/sprite"
+	"github.com/hoani/3310_engine/engine/surface"
 	"github.com/hoani/3310_engine/example/sprite/sprites/pgm"
 	"github.com/hoani/3310_engine/platform"
 )
@@ -158,6 +159,48 @@ func (g *Game) drawArrow() func(engine.Canvas) error {
 	}
 }
 
+func (g *Game) drawWindowed() func(engine.Canvas) error {
+
+	scene, err := sprite.FromP5(pgm.Beeg)
+	if err != nil {
+		panic(err)
+	}
+
+	opts := draw.NewSpriteOpts().WithWindow(80, 44)
+
+	// Using surface cut the cpu from ~78% to 38% - does go up a bit when panning etc.
+	s := surface.New(80, 44)
+	ds := draw.New(s)
+	pending := true
+
+	return func(c engine.Canvas) error {
+		if g.keypad.Check(engine.K5) {
+			opts.Window.Y--
+			pending = true
+		}
+		if g.keypad.Check(engine.K7) {
+			opts.Window.X--
+			pending = true
+		}
+		if g.keypad.Check(engine.K0) {
+			opts.Window.Y++
+			pending = true
+		}
+		if g.keypad.Check(engine.K9) {
+			opts.Window.X++
+			pending = true
+		}
+
+		if pending {
+			ds.Sprite(0, 0, scene, 0, opts)
+			pending = false
+		}
+		c.DrawSurface(2, 2, s)
+
+		return nil
+	}
+}
+
 func main() {
 
 	g := &Game{info: &engine.GameInfo{Debug: true, Fps: 60}}
@@ -165,6 +208,7 @@ func main() {
 	g.items = append(
 		g.items,
 		Item{draw: g.drawSphere(), name: "Sphere"},
+		Item{draw: g.drawWindowed(), name: "Pan"},
 		Item{draw: g.drawOutlines(), name: "Outlines"},
 		Item{draw: g.drawLetters(), name: "Fading"},
 		Item{draw: g.drawArrow(), name: "Transforms"},
