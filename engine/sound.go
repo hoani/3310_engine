@@ -21,5 +21,6 @@ type Sound interface {
 // Provided by platform.
 type SoundPlayer interface {
 	Play(s Sound)
+	Track(s Sound, loop bool)
 	Stop()
 }

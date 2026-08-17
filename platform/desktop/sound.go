@@ -22,7 +22,8 @@ type SoundPlayer struct {
 	ctx    *oto.Context
 	player *oto.Player
 	// Source
-	src *source
+	src   *source
+	track sourceData
 	// Notes
 	filters []*biquad
 	notes   [note.Total]*voice
@@ -44,6 +45,7 @@ func NewSoundPlayer() (*SoundPlayer, error) {
 		filters: []*biquad{newBandpass(3442, 1.63), newBandpass(5411, 9.75)},
 		src:     &source{},
 	}
+	p.src.reload = p.reload
 
 	for i := range p.notes {
 		freq := note.Frequency(note.Index(i))
@@ -56,8 +58,29 @@ func NewSoundPlayer() (*SoundPlayer, error) {
 	return p, nil
 }
 
+func (p *SoundPlayer) Track(s engine.Sound, loop bool) {
+	p.load(s, true, loop)
+	p.track = p.src.get()
+}
+
 func (p *SoundPlayer) Play(s engine.Sound) {
+	current := p.src.get()
+	if current.music {
+		p.track.pos = current.pos
+	}
+	p.load(s, false, false)
+}
+
+func (p *SoundPlayer) reload() sourceData {
+	if p.track.music {
+		return p.track
+	}
+	return sourceData{}
+}
+
+func (p *SoundPlayer) load(s engine.Sound, music, loop bool) {
 	var buf bytes.Buffer
+	p.player.Pause()
 	s.Reset()
 	for _, filter := range p.filters {
 		filter.reset()
@@ -66,11 +89,15 @@ func (p *SoundPlayer) Play(s engine.Sound) {
 		n := s.Next()
 		p.notes[n.Index].Generate(n.Duration, n.Amplitude, &buf)
 	}
-	p.src.set(buf.Bytes())
+	p.src.set(buf.Bytes(), music, loop)
+	p.player = p.ctx.NewPlayer(p.src)
+	p.player.Play()
 }
 
 func (p *SoundPlayer) Stop() {
-	p.src.set(nil)
+	p.player.Pause()
+	p.src.set(nil, false, false)
+	p.track = sourceData{}
 }
 
 type biquad struct {
@@ -157,10 +184,17 @@ func (s *voice) Generate(dur time.Duration, amplitude uint8, w io.Writer) error 
 }
 
 // Source plays sound continuously, this emulates a buzzer that we can feed generated sound into.
+type sourceData struct {
+	pcm   []byte
+	pos   int
+	loop  bool
+	music bool
+}
+
 type source struct {
-	mu  sync.Mutex
-	pcm []byte
-	pos int
+	mu sync.Mutex
+	sourceData
+	reload func() sourceData
 }
 
 func (s *source) Read(p []byte) (int, error) {
@@ -172,7 +206,17 @@ func (s *source) Read(p []byte) (int, error) {
 		n = copy(p, s.pcm[s.pos:])
 		n -= n % 2 // stay on 16-bit frame boundaries
 		s.pos += n
+
+		if s.pos >= len(s.pcm) {
+			if s.loop {
+				s.pos = 0
+				return n, nil
+			} else if !s.music {
+				s.sourceData = s.reload()
+			}
+		}
 	}
+
 	// Generate silence if we are out of things to play
 	if n == 0 {
 		for i := n; i < len(p); i++ {
@@ -182,8 +226,14 @@ func (s *source) Read(p []byte) (int, error) {
 	return len(p), nil
 }
 
-func (s *source) set(pcm []byte) {
+func (s *source) set(pcm []byte, music, loop bool) {
 	s.mu.Lock()
-	s.pcm, s.pos = pcm, 0
+	s.pcm, s.pos, s.music, s.loop = pcm, 0, music, loop
 	s.mu.Unlock()
+}
+
+func (s *source) get() sourceData {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.sourceData
 }
