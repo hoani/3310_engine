@@ -11,13 +11,13 @@ import (
 )
 
 type Keypad struct {
-	col     [3]machine.Pin
+	col     [4]machine.Pin
 	row     [4]machine.Pin
-	state   [12]bool
-	changed [12]bool
+	state   [16]bool
+	changed [16]bool
 }
 
-func NewKeypad(col [3]machine.Pin, row [4]machine.Pin) (*Keypad, *command.Command[engine.Key]) {
+func NewKeypad(col [4]machine.Pin, row [4]machine.Pin) (*Keypad, *command.Command[engine.Key]) {
 	for _, in := range row {
 		in.Configure(machine.PinConfig{Mode: machine.PinInputPulldown})
 	}
@@ -28,9 +28,10 @@ func NewKeypad(col [3]machine.Pin, row [4]machine.Pin) (*Keypad, *command.Comman
 	}
 
 	kp := &Keypad{
-		col:   col,
-		row:   row,
-		state: [12]bool{},
+		col:     col,
+		row:     row,
+		state:   [16]bool{},
+		changed: [16]bool{},
 	}
 
 	cmd := command.New[engine.Key]()
@@ -46,6 +47,10 @@ func NewKeypad(col [3]machine.Pin, row [4]machine.Pin) (*Keypad, *command.Comman
 	cmd.Register(engine.KStar, func() bool { return kp.Get(engine.KStar) })
 	cmd.Register(engine.K0, func() bool { return kp.Get(engine.K0) })
 	cmd.Register(engine.KHash, func() bool { return kp.Get(engine.KHash) })
+	cmd.Register(engine.KA, func() bool { return kp.Get(engine.KA) })
+	cmd.Register(engine.KB, func() bool { return kp.Get(engine.KB) })
+	cmd.Register(engine.KC, func() bool { return kp.Get(engine.KC) })
+	cmd.Register(engine.KD, func() bool { return kp.Get(engine.KD) })
 
 	return kp, cmd
 }

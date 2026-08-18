@@ -17,7 +17,7 @@ import (
 type Platform struct {
 	game   engine.Game
 	canvas *canvas
-	led    machine.Pin
+	lcdLed machine.Pin
 	lcd    *pcd8544.Device
 	keypad *Keypad
 	snd    *SoundPlayer
@@ -27,7 +27,7 @@ func New(game engine.Game, lcd *pcd8544.Device, led machine.Pin, snd *SoundPlaye
 	return &Platform{
 		game:   game,
 		canvas: NewCanvas(lcd),
-		led:    led,
+		lcdLed: led,
 		lcd:    lcd,
 		snd:    snd,
 		keypad: keypad,
@@ -54,6 +54,7 @@ func (p *Platform) Run() error {
 	memFloor := uint64(0)
 	memLast := uint64(0)
 	period := time.Second / time.Duration(p.game.Info().Fps)
+	illuminated := false
 	for {
 		count++
 		start := time.Now()
@@ -85,6 +86,11 @@ func (p *Platform) Run() error {
 			}
 			memLast = m.Alloc
 		}
+		if info.Illuminated != illuminated {
+			p.lcdLed.Set(info.Illuminated)
+			illuminated = info.Illuminated
+		}
+		
 		rem := period - time.Since(start)
 		time.Sleep(rem)
 	}
@@ -155,14 +161,14 @@ func Run(game engine.Game) {
 	// Configure SPI with a 1 MHz frequency.
 	pcd := setupPcd(&def.Pcd)
 
-	def.Led.Configure(machine.PinConfig{Mode: machine.PinOutput})
+	def.Pcd.LedPin.Configure(machine.PinConfig{Mode: machine.PinOutput})
 
 	buzzer, err := setupBuzzer(&def.Buzzer, game.Info().Fps)
 	handleErr("Audion Setup", err)
 
 	keypad, cmd := NewKeypad(def.Keypad.Col, def.Keypad.Row)
 
-	p := New(game, pcd, def.Led, buzzer, keypad)
+	p := New(game, pcd, def.Pcd.LedPin, buzzer, keypad)
 
 	game.Setup(cmd, buzzer, p)
 

@@ -62,6 +62,7 @@ func (p *SoundPlayer) update(s *Sound) (ok bool) {
 				s.sound.Reset()
 			} else {
 				s.sound = nil
+				p.pwm.Set(p.ch, 0)
 				return false
 			}
 		}
@@ -111,8 +112,7 @@ func (p *SoundPlayer) playNext(s *Sound) {
 		duty := (p.pwm.Top() * uint32(n.Amplitude)) / (2 * 0xFF)
 		p.pwm.Set(p.ch, duty)
 	} else {
-		p.pwm.SetPeriod(1000000)
-		p.pwm.Set(p.ch, 1)
+		p.pwm.Set(p.ch, 0)
 	}
 
 }
@@ -120,6 +120,5 @@ func (p *SoundPlayer) playNext(s *Sound) {
 func (p *SoundPlayer) Stop() {
 	p.sfx.sound = nil
 	p.track.sound = nil
-	p.pwm.SetPeriod(1000000)
-	p.pwm.Set(p.ch, 1)
+	p.pwm.Set(p.ch, 0)
 }

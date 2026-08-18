@@ -15,6 +15,7 @@ type Pcd struct {
 	DcPin  machine.Pin
 	RstPin machine.Pin
 	ScePin machine.Pin
+	LedPin machine.Pin
 }
 
 type Buzzer struct {
@@ -23,13 +24,12 @@ type Buzzer struct {
 }
 
 type Keypad struct {
-	Col [3]machine.Pin
+	Col [4]machine.Pin
 	Row [4]machine.Pin
 }
 
 type Definition struct {
 	Pcd    Pcd
-	Led    machine.Pin
 	Buzzer Buzzer
 	Keypad Keypad
 }
