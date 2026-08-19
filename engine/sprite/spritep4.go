@@ -2,9 +2,6 @@ package sprite
 
 import (
 	"errors"
-	"fmt"
-	"strconv"
-	"strings"
 
 	"github.com/hoani/3310_engine/engine"
 )
@@ -22,10 +19,11 @@ func (s *spriteP4) At(i, j, index int) (shade uint8) {
 		return engine.SpriteTransparent
 	}
 
+	index = index % s.count
+
 	rowBit := i + (s.W * index)
 	shift := 7 - (rowBit % 8)
 
-	index = index % s.count
 	offset := s.RowWidth*j + rowBit/8
 
 	if s.Mask != "" {
@@ -43,28 +41,26 @@ func (s *spriteP4) At(i, j, index int) (shade uint8) {
 }
 
 func parseP4(raw string) (int, int, string, error) {
-	raw = strings.ReplaceAll(raw, "\r", "") // Deals with windows nonsense
-	parts := strings.Split(raw, "\n")
-	if len(parts) != 3 {
-		return 0, 0, "", fmt.Errorf("invalid file format, got %d parts", len(parts))
-	}
-	if parts[0] != "P4" {
-		return 0, 0, "", errors.New("unknown file format")
-	}
-	sizes := strings.Split(parts[1], " ")
-	if len(sizes) != 2 {
-		return 0, 0, "", errors.New("P4 sizes are invalid")
-	}
-	w, err := strconv.Atoi(sizes[0])
+	magic, offset, err := nextLine(raw, 0)
 	if err != nil {
-		return 0, 0, "", err
+		return 0, 0, "", errors.New("missing magic header")
 	}
-	h, err := strconv.Atoi(sizes[1])
+
+	if magic != "P4" {
+		return 0, 0, "", errors.New("file format is not P4")
+	}
+
+	sizeLine, offset, err := nextLine(raw, offset)
+	if err != nil {
+		return 0, 0, "", errors.New("missing size line")
+	}
+
+	w, h, err := parseSizes(sizeLine)
 	if err != nil {
 		return 0, 0, "", err
 	}
 
-	return w, h, parts[2], nil
+	return w, h, raw[offset:], nil // body verbatim
 }
 
 func FromP4(raw string, mask string) (*spriteP4, error) {

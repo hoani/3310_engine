@@ -3,7 +3,6 @@ package sprite
 import (
 	"errors"
 	"strconv"
-	"strings"
 
 	"github.com/hoani/3310_engine/engine"
 )
@@ -23,25 +22,33 @@ func (s *spriteP5) At(i, j, index int) (shade uint8) {
 }
 
 func FromP5(raw string) (*spriteP5, error) {
-	raw = strings.ReplaceAll(raw, "\r", "") // Deals with windows nonsense
-	parts := strings.Split(raw, "\n")
-	if len(parts) != 4 {
-		return nil, errors.New("invalid file format")
+	magic, offset, err := nextLine(raw, 0)
+	if err != nil {
+		return nil, errors.New("missing magic header")
 	}
-	if parts[0] != "P5" {
-		return nil, errors.New("unknown file format")
+	if magic != "P5" {
+		return nil, errors.New("file format is not P5")
 	}
-	sizes := strings.Split(parts[1], " ")
-	if len(sizes) != 2 {
-		return nil, errors.New("P5 sizes are invalid")
+
+	sizeLine, offset, err := nextLine(raw, offset)
+	if err != nil {
+		return nil, errors.New("missing size header")
 	}
-	w, err := strconv.Atoi(sizes[0])
+	w, h, err := parseSizes(sizeLine)
 	if err != nil {
 		return nil, err
 	}
-	h, err := strconv.Atoi(sizes[1])
+
+	maxLine, offset, err := nextLine(raw, offset)
+	if err != nil {
+		return nil, errors.New("missing maxvalue header")
+	}
+	maxval, err := strconv.Atoi(maxLine)
 	if err != nil {
 		return nil, err
+	}
+	if maxval != 255 {
+		return nil, errors.New("Only 8-bit P5 is supported")
 	}
 
 	return &spriteP5{
@@ -50,7 +57,7 @@ func FromP5(raw string) (*spriteP5, error) {
 			H:     h,
 			count: 1,
 		},
-		Content: parts[3],
+		Content: raw[offset:], // body verbatim
 	}, nil
 }
 

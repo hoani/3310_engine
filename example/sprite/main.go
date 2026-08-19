@@ -83,15 +83,16 @@ func (g *Game) drawLetters() func(engine.Canvas) error {
 
 	return func(c engine.Canvas) error {
 		textOps := draw.NewSpriteOpts()
-		textOps.WithOutline(true)
+		textOps.WithOutline(true).WithInvert()
 
 		for i := range 12 {
 			g.draw.Sprite(i*7, 12, letters, i, textOps)
+			g.draw.Sprite(i*7, 24, letters, 12+i, textOps)
 		}
 
 		textOps.WithAlpha(uint8(g.count))
 		for i := range 12 {
-			g.draw.Sprite(i*7, 24, letters, i, textOps)
+			g.draw.Sprite(i*7, 40, letters, i, textOps)
 		}
 
 		return nil
