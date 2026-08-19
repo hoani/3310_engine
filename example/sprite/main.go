@@ -76,7 +76,7 @@ func (g *Game) drawSphere() func(engine.Canvas) error {
 
 func (g *Game) drawLetters() func(engine.Canvas) error {
 
-	letters, err := sprite.StripFromP5(pgm.ClassicLight, 7)
+	letters, err := sprite.StripFromP4(pgm.ClassicLight, pgm.ClassicLightMask, 7)
 	if err != nil {
 		panic(err)
 	}
@@ -100,7 +100,7 @@ func (g *Game) drawLetters() func(engine.Canvas) error {
 
 func (g *Game) drawOutlines() func(engine.Canvas) error {
 
-	letters, err := sprite.StripFromP5(pgm.ClassicLight, 7)
+	letters, err := sprite.StripFromP4(pgm.ClassicLight, pgm.ClassicLightMask, 7)
 	if err != nil {
 		panic(err)
 	}
@@ -161,7 +161,7 @@ func (g *Game) drawArrow() func(engine.Canvas) error {
 
 func (g *Game) drawWindowed() func(engine.Canvas) error {
 
-	scene, err := sprite.FromP5(pgm.Beeg)
+	scene, err := sprite.FromP4(pgm.Beeg, "")
 	if err != nil {
 		panic(err)
 	}
@@ -203,7 +203,7 @@ func (g *Game) drawWindowed() func(engine.Canvas) error {
 
 func (g *Game) drawAlignment() func(engine.Canvas) error {
 
-	letter, err := sprite.StripFromP5(pgm.ClassicLight, 7)
+	letter, err := sprite.StripFromP4(pgm.ClassicLight, pgm.ClassicLightMask, 7)
 	if err != nil {
 		panic(err)
 	}

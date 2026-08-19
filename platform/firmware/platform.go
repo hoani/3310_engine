@@ -164,7 +164,7 @@ func Run(game engine.Game) {
 	def.Pcd.LedPin.Configure(machine.PinConfig{Mode: machine.PinOutput})
 
 	buzzer, err := setupBuzzer(&def.Buzzer, game.Info().Fps)
-	handleErr("Audion Setup", err)
+	handleErr("Audio Setup", err)
 
 	keypad, cmd := NewKeypad(def.Keypad.Col, def.Keypad.Row)
 
