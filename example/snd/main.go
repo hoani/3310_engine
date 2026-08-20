@@ -1,11 +1,14 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/hoani/3310_engine/engine"
 	"github.com/hoani/3310_engine/engine/command"
 	"github.com/hoani/3310_engine/engine/draw"
 	"github.com/hoani/3310_engine/engine/sound"
 	"github.com/hoani/3310_engine/engine/sound/note"
+	"github.com/hoani/3310_engine/example/fonts/cink"
 	"github.com/hoani/3310_engine/example/snd/sound/music"
 	"github.com/hoani/3310_engine/platform"
 )
@@ -92,11 +95,44 @@ func (g *Game) play(name string) Item {
 
 }
 
+func (g *Game) custom(name string) Item {
+
+	freq := float32(500.0)
+	tune := sound.Sound(10)
+	text := fmt.Sprintf("%f", freq)
+	return Item{
+		name: name,
+		update: func() error {
+
+			if g.keypad.Pressed(engine.K4) {
+				freq -= 10.0
+				text = fmt.Sprintf("%f", freq)
+			}
+			if g.keypad.Pressed(engine.K5) {
+				tune = sound.Sound(100, sound.Custom(freq, 0xFF, 2))
+				g.snd.Play(tune)
+			}
+			if g.keypad.Pressed(engine.K6) {
+				freq += 10.0
+				text = fmt.Sprintf("%f", freq)
+			}
+
+			return nil
+		},
+		draw: func(canvas engine.Canvas) error {
+			g.draw.Text(42, 24, text).Font(&cink.Frogotype).HAlign(draw.FaCenter).VAlign(draw.FaMiddle).Draw(true, nil)
+			return nil
+		},
+	}
+
+}
+
 func main() {
 	g := &Game{info: &engine.GameInfo{Debug: true, Fps: 60}}
 	g.items = append(
 		g.items,
 		g.play("basic"),
+		g.custom("custom"),
 	)
 
 	platform.Run(g)
