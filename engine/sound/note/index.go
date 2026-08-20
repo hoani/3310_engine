@@ -45,6 +45,7 @@ const (
 	As6
 	B6
 	total
+	Custom
 )
 
 const Total = int(total)

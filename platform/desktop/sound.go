@@ -88,7 +88,12 @@ func (p *SoundPlayer) load(s engine.Sound, music, loop bool) {
 	}
 	for !s.Done() {
 		n := s.Next()
-		p.notes[n.Index].Generate(n.Duration, n.Amplitude, &buf)
+		if n.Index() == note.Custom {
+			v := newVoice(float64(n.Frequency()), p.filters)
+			v.Generate(n.Duration(), n.Amplitude(), &buf)
+		} else {
+			p.notes[n.Index()].Generate(n.Duration(), n.Amplitude(), &buf)
+		}
 	}
 	p.src.set(buf.Bytes(), music, loop)
 	p.player = p.ctx.NewPlayer(p.src)

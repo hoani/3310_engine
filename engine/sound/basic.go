@@ -45,14 +45,14 @@ func (b *Basic) Reset() {
 func (b *Basic) Next() engine.Note {
 
 	if b.Done() {
-		return engine.Note{Index: note.None}
+		return engine.NoneNote(0)
 	}
 
 	n := b.notes[b.index]
 	b.index++
 
 	dur := time.Millisecond * time.Duration(n.dur) * time.Duration(b.msPerStep)
-	return engine.Note{Index: n.index, Amplitude: n.amp, Duration: dur}
+	return engine.BasicNote(n.index, n.amp, dur)
 }
 
 func (b *Basic) Done() bool {

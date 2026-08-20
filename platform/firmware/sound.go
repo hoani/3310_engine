@@ -31,7 +31,7 @@ type SoundPlayer struct {
 
 func NewSoundPlayer(pwm board.PwmGroup, ch uint8, fps int) *SoundPlayer {
 	p := &SoundPlayer{
-		active:      engine.Note{Index: note.None},
+		active:      engine.NoneNote(0),
 		sfx:         Sound{sound: nil, frame: 0, loop: false},
 		track:       Sound{sound: nil, frame: 0, loop: false},
 		pwm:         pwm,
@@ -55,7 +55,7 @@ func (p *SoundPlayer) update(s *Sound) (ok bool) {
 	if s.sound == nil {
 		return false
 	}
-	delta := p.active.Duration - (time.Duration(s.frame) * p.durPerFrame)
+	delta := p.active.Duration() - (time.Duration(s.frame) * p.durPerFrame)
 	if delta <= p.durPerFrame/2 { // Round it out.
 		if s.sound.Done() {
 			if s.loop {
@@ -106,10 +106,10 @@ func (p *SoundPlayer) playNext(s *Sound) {
 	n := s.sound.Next()
 
 	p.active = n
-	if n.Index != note.None {
-		period := uint64(float32(time.Second) / note.Frequency(n.Index))
+	if n.Index() != note.None {
+		period := uint64(float32(time.Second) / n.Frequency())
 		p.pwm.SetPeriod(period)
-		duty := (p.pwm.Top() * uint32(n.Amplitude)) / (2 * 0xFF)
+		duty := (p.pwm.Top() * uint32(n.Amplitude())) / (2 * 0xFF)
 		p.pwm.Set(p.ch, duty)
 	} else {
 		p.pwm.Set(p.ch, 0)
