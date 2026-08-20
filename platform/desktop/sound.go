@@ -34,6 +34,7 @@ func NewSoundPlayer() (*SoundPlayer, error) {
 		SampleRate:   sampleRate,
 		ChannelCount: 1,
 		Format:       oto.FormatSignedInt16LE,
+		BufferSize:   20 * time.Millisecond,
 	})
 	if err != nil {
 		return nil, err

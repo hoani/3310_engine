@@ -8,6 +8,9 @@ import (
 //go:embed "arrow.pgm"
 var Arrow string
 
+//go:embed "boxing32.pgm"
+var Boxing32 string
+
 //go:embed "gradsphere.pgm"
 var Gradsphere string
 
