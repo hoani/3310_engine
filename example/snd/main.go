@@ -44,7 +44,6 @@ func (g *Game) Update() error {
 	g.count++
 
 	g.keypad.Update()
-	g.count++
 
 	if g.keypad.Pressed(engine.KB) {
 		g.info.Illuminated = !g.info.Illuminated

@@ -23,6 +23,11 @@ type Window struct {
 	W, H, X, Y int
 }
 
+type Repeat struct {
+	X uint8
+	Y uint8
+}
+
 type SpriteOpts struct {
 	Opts
 	HFlip    bool
@@ -30,6 +35,7 @@ type SpriteOpts struct {
 	Rotation Rotation
 	Window   Window
 	Align    SpriteAlign
+	Repeat   Repeat
 }
 
 func NewSpriteOpts() *SpriteOpts {
@@ -71,6 +77,12 @@ func (o *SpriteOpts) WithAlign(align SpriteAlign) *SpriteOpts {
 
 func (o *SpriteOpts) WithAlphaCustom(amount uint8, dither DitherFunc) *SpriteOpts {
 	o.WithAlphaCustom(amount, dither)
+	return o
+}
+
+func (o *SpriteOpts) WithRepeat(x, y uint8) *SpriteOpts {
+	o.Repeat.X = x
+	o.Repeat.Y = y
 	return o
 }
 
@@ -128,7 +140,7 @@ func (d *draw) Sprite(x, y int, spr engine.Sprite, index int, opts *SpriteOpts) 
 	i0 := 0
 	j0 := 0
 
-	x, y = opts.Align.Apply(x, y, w, h)
+	x, y = opts.Align.Apply(x, y, w*int(1+opts.Repeat.X), h*int(1+opts.Repeat.Y))
 
 	if opts.Window.Apply {
 		w, h = opts.Window.W, opts.Window.H
@@ -167,7 +179,14 @@ func (d *draw) Sprite(x, y int, spr engine.Sprite, index int, opts *SpriteOpts) 
 					on = !on
 				}
 				if !opts.Outline.Only {
-					d.c.Set(x+i-i0, y+j-j0, on)
+					for n := range opts.Repeat.X + 1 {
+						xpos := x + int(n)*w
+						for m := range opts.Repeat.Y + 1 {
+							ypos := y + int(m)*h
+							d.c.Set(xpos+i-i0, ypos+j-j0, on)
+
+						}
+					}
 				}
 				continue
 			}

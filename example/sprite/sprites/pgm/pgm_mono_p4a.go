@@ -11,3 +11,9 @@ var ClassicLight string
 //go:embed "classic_light_mask.pbm"
 var ClassicLightMask string
 
+//go:embed "tile.pbm"
+var Tile string
+
+//go:embed "tile_mask.pbm"
+var TileMask string
+

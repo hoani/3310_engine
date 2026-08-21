@@ -39,8 +39,18 @@ func (g *Game) Update() error {
 	g.keypad.Update()
 	g.count++
 
-	if g.keypad.Pressed(engine.K8) {
+	if g.keypad.Pressed(engine.KB) {
+		g.info.Illuminated = !g.info.Illuminated
+	}
+	if g.keypad.Pressed(engine.KC) {
 		g.index = (g.index + 1) % len(g.items)
+		g.count = 0
+	}
+	if g.keypad.Pressed(engine.KD) {
+		g.index = (g.index - 1)
+		if g.index < 0 {
+			g.index += len(g.items)
+		}
 		g.count = 0
 	}
 
@@ -239,6 +249,54 @@ func (g *Game) drawAlignment() func(engine.Canvas) error {
 	}
 }
 
+func (g *Game) drawTiled() func(engine.Canvas) error {
+
+	tile, err := sprite.FromP4NoMask(pgm.Tile)
+	if err != nil {
+		panic(err)
+	}
+
+	opts := draw.NewSpriteOpts().WithRepeat(1, 1)
+
+	names := []string{
+		"Top Left",
+		"Top",
+		"Top Right",
+		"Left",
+		"Center",
+		"Right",
+		"Bottom Left",
+		"Bottom",
+		"Bottom Right",
+	}
+
+	textOps := draw.NewOpts().WithOutline(false)
+
+	return func(c engine.Canvas) error {
+		if g.keypad.Pressed(engine.K5) {
+			opts.Align = (opts.Align + 1) % draw.SpriteAlignNum
+		}
+
+		if g.keypad.Pressed(engine.K1) {
+			opts.Repeat.X++
+		}
+		if g.keypad.Pressed(engine.K4) {
+			opts.Repeat.X--
+		}
+		if g.keypad.Pressed(engine.K3) {
+			opts.Repeat.Y++
+		}
+		if g.keypad.Pressed(engine.K6) {
+			opts.Repeat.Y--
+		}
+
+		g.draw.Sprite(42, 24, tile, 0, opts)
+
+		g.draw.Text(42, 46, names[opts.Align]).HAlign(draw.FaCenter).VAlign(draw.FaBottom).Draw(true, textOps)
+		return nil
+	}
+}
+
 func main() {
 
 	g := &Game{info: &engine.GameInfo{Debug: true, Fps: 60}}
@@ -251,6 +309,7 @@ func main() {
 		Item{draw: g.drawOutlines(), name: "Outlines"},
 		Item{draw: g.drawLetters(), name: "Fading"},
 		Item{draw: g.drawArrow(), name: "Transforms"},
+		Item{draw: g.drawTiled(), name: "Tiled"},
 	)
 	platform.Run(g)
 }

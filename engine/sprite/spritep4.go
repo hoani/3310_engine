@@ -103,3 +103,11 @@ func StripFromP4(raw, mask string, w int) (*spriteP4, error) {
 	spr.W = w
 	return spr, nil
 }
+
+func FromP4NoMask(raw string) (*spriteP4, error) {
+	return FromP4(raw, "")
+}
+
+func StripFromP4NoMask(raw string, w int) (*spriteP4, error) {
+	return StripFromP4(raw, "", w)
+}
