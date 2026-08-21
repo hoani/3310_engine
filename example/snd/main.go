@@ -46,11 +46,14 @@ func (g *Game) Update() error {
 	g.keypad.Update()
 	g.count++
 
-	if g.keypad.Pressed(engine.K8) {
+	if g.keypad.Pressed(engine.KB) {
+		g.info.Illuminated = !g.info.Illuminated
+	}
+	if g.keypad.Pressed(engine.KC) {
 		g.index = (g.index + 1) % len(g.items)
 		g.count = 0
 	}
-	if g.keypad.Pressed(engine.K7) {
+	if g.keypad.Pressed(engine.KD) {
 		g.index = (g.index - 1)
 		if g.index < 0 {
 			g.index += len(g.items)
@@ -99,22 +102,31 @@ func (g *Game) custom(name string) Item {
 
 	freq := float32(500.0)
 	tune := sound.Sound(10)
-	text := fmt.Sprintf("%f", freq)
+	text := fmt.Sprintf("%.2f", freq)
+	amount := float32(0.25)
 	return Item{
 		name: name,
 		update: func() error {
-
-			if g.keypad.Pressed(engine.K4) {
-				freq -= 10.0
-				text = fmt.Sprintf("%f", freq)
+			before := freq
+			if g.keypad.Check(engine.K4) {
+				freq -= amount
+				if freq < 5.0 {
+					freq = 5.0
+				}
+				amount = amount * 1.1
+				text = fmt.Sprintf("%.2f", freq)
 			}
 			if g.keypad.Pressed(engine.K5) {
 				tune = sound.Sound(100, sound.Custom(freq, 0xFF, 2))
 				g.snd.Play(tune)
 			}
-			if g.keypad.Pressed(engine.K6) {
-				freq += 10.0
-				text = fmt.Sprintf("%f", freq)
+			if g.keypad.Check(engine.K6) {
+				freq += amount
+				amount = amount * 1.1
+				text = fmt.Sprintf("%.2f", freq)
+			}
+			if before == freq {
+				amount = 0.25
 			}
 
 			return nil
