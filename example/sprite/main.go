@@ -84,6 +84,25 @@ func (g *Game) drawSphere() func(engine.Canvas) error {
 	}
 }
 
+func (g *Game) drawIso() func(engine.Canvas) error {
+
+	iso, err := sprite.FromP5(pgm.Iso)
+	if err != nil {
+		panic(err)
+	}
+
+	opts := draw.NewSpriteOpts().WithAlign(draw.SaCenter)
+
+	return func(c engine.Canvas) error {
+
+		g.draw.Sprite(42, 24, iso, 0, opts)
+		g.draw.Sprite(42+iso.W, 24, iso, 0, opts)
+		g.draw.Sprite(42+iso.W/2+1, 24+iso.H/4, iso, 0, opts)
+
+		return nil
+	}
+}
+
 func (g *Game) drawLetters() func(engine.Canvas) error {
 
 	letters, err := sprite.StripFromP4(pgm.ClassicLight, pgm.ClassicLightMask, 7)
@@ -304,6 +323,7 @@ func main() {
 	g.items = append(
 		g.items,
 		Item{draw: g.drawSphere(), name: "Sphere"},
+		Item{draw: g.drawIso(), name: "Iso"},
 		Item{draw: g.drawWindowed(), name: "Pan"},
 		Item{draw: g.drawAlignment(), name: "Alignment"},
 		Item{draw: g.drawOutlines(), name: "Outlines"},

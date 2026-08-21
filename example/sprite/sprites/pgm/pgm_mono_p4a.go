@@ -11,6 +11,12 @@ var ClassicLight string
 //go:embed "classic_light_mask.pbm"
 var ClassicLightMask string
 
+//go:embed "pallete.pbm"
+var Pallete string
+
+//go:embed "pallete_mask.pbm"
+var PalleteMask string
+
 //go:embed "tile.pbm"
 var Tile string
 

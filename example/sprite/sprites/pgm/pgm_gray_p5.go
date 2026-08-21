@@ -14,3 +14,6 @@ var Boxing32 string
 //go:embed "gradsphere.pgm"
 var Gradsphere string
 
+//go:embed "iso.pgm"
+var Iso string
+
