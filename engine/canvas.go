@@ -1,5 +1,10 @@
 package engine
 
+type Overlay interface {
+	Get() [][]byte
+	Ink() bool
+}
+
 type Canvas interface {
 	Clear(set bool)
 	Width() int
@@ -7,6 +12,7 @@ type Canvas interface {
 	Set(x, y int, val bool)
 	Get(x, y int) bool
 	Buffer() []byte
+	Overlay(overlay Overlay)
 	DrawSurface(x, y int, s Surface)
 }
 
@@ -71,6 +77,31 @@ func (c *canvas) Height() int {
 
 func (c *canvas) Buffer() []byte {
 	return c.buffer
+}
+
+func (c *canvas) Overlay(o Overlay) {
+	chunk := o.Get()
+	cw := len(chunk)
+	if cw == 0 {
+		return
+	}
+	ch := len(chunk[0])
+	if ch == 0 {
+		return
+	}
+	if o.Ink() {
+		for i := range c.buffer {
+			x := (i % c.w) % cw
+			y := (i / c.w) % ch
+			c.buffer[i] |= chunk[x][y]
+		}
+	} else {
+		for i := range c.buffer {
+			x := (i % c.w) % cw
+			y := (i / c.w) % ch
+			c.buffer[i] &^= chunk[x][y]
+		}
+	}
 }
 
 func (c *canvas) DrawSurface(x, y int, s Surface) {

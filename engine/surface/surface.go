@@ -60,6 +60,31 @@ func (c *surface) Buffer() []byte {
 	return c.ink.Buffer() // Again, best guess...
 }
 
+func (c *surface) Overlay(o engine.Overlay) {
+	chunk := o.Get()
+	cw := len(chunk)
+	if cw == 0 {
+		return
+	}
+	ch := len(chunk[0])
+	if ch == 0 {
+		return
+	}
+	buffAdd := c.ink.Buffer()
+	buffSub := c.paper.Buffer()
+	if !o.Ink() {
+		buffAdd, buffSub = buffSub, buffAdd
+
+	}
+	for i := range buffAdd {
+		x := (i % c.w) % cw
+		y := (i / c.w) % ch
+		buffAdd[i] |= chunk[x][y]
+		buffSub[i] &^= chunk[x][y]
+	}
+
+}
+
 func (c *surface) DrawSurface(x, y int, s engine.Surface) {
 	c.ink.DrawSurface(x, y, s)
 	sw := SwapSurface{s}
