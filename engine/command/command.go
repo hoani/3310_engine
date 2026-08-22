@@ -7,17 +7,23 @@ type entry struct {
 	released bool
 }
 
-type Command[T ~int] struct {
+type Command[T ~int] interface {
+	Pressed(cmd T) bool
+	Released(cmd T) bool
+	Check(cmd T) bool
+}
+
+type CommandImpl[T ~int] struct {
 	registry map[T]*entry
 }
 
-func New[T ~int]() *Command[T] {
-	return &Command[T]{
+func New[T ~int]() *CommandImpl[T] {
+	return &CommandImpl[T]{
 		registry: make(map[T]*entry),
 	}
 }
 
-func (c *Command[T]) Register(cmd T, check func() bool) {
+func (c *CommandImpl[T]) Register(cmd T, check func() bool) {
 	if _, ok := c.registry[cmd]; !ok {
 		c.registry[cmd] = &entry{
 			checks: make([]func() bool, 0),
@@ -27,7 +33,7 @@ func (c *Command[T]) Register(cmd T, check func() bool) {
 	entry.checks = append(entry.checks, check)
 }
 
-func (c *Command[T]) Update() {
+func (c *CommandImpl[T]) Update() {
 	for _, entry := range c.registry {
 		active := false
 		for _, check := range entry.checks {
@@ -53,17 +59,17 @@ func (c *Command[T]) Update() {
 	}
 }
 
-func (c *Command[T]) Pressed(cmd T) bool {
+func (c *CommandImpl[T]) Pressed(cmd T) bool {
 	entry, ok := c.registry[cmd]
 	return ok && entry.pressed
 }
 
-func (c *Command[T]) Released(cmd T) bool {
+func (c *CommandImpl[T]) Released(cmd T) bool {
 	entry, ok := c.registry[cmd]
 	return ok && entry.released
 }
 
-func (c *Command[T]) Check(cmd T) bool {
+func (c *CommandImpl[T]) Check(cmd T) bool {
 	entry, ok := c.registry[cmd]
 	return ok && entry.active
 }

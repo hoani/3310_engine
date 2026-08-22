@@ -19,11 +19,12 @@ type Platform struct {
 	canvas *canvas
 	lcdLed machine.Pin
 	lcd    *pcd8544.Device
-	keypad *Keypad
 	snd    *SoundPlayer
+	keypad *Keypad
+	cmd *command.CommandImpl[engine.Key]
 }
 
-func New(game engine.Game, lcd *pcd8544.Device, led machine.Pin, snd *SoundPlayer, keypad *Keypad) *Platform {
+func New(game engine.Game, lcd *pcd8544.Device, led machine.Pin, snd *SoundPlayer, keypad *Keypad, cmd *command.CommandImpl[engine.Key]) *Platform {
 	return &Platform{
 		game:   game,
 		canvas: NewCanvas(lcd),
@@ -31,6 +32,7 @@ func New(game engine.Game, lcd *pcd8544.Device, led machine.Pin, snd *SoundPlaye
 		lcd:    lcd,
 		snd:    snd,
 		keypad: keypad,
+		cmd: cmd,
 	}
 }
 
@@ -59,6 +61,7 @@ func (p *Platform) Run() error {
 		count++
 		start := time.Now()
 		p.keypad.Update()
+		p.cmd.Update()
 		if err := p.game.Update(); err != nil {
 			return err
 		}
@@ -168,7 +171,7 @@ func Run(game engine.Game) {
 
 	keypad, cmd := NewKeypad(def.Keypad.Col, def.Keypad.Row)
 
-	p := New(game, pcd, def.Pcd.LedPin, buzzer, keypad)
+	p := New(game, pcd, def.Pcd.LedPin, buzzer, keypad, cmd)
 
 	game.Setup(cmd, buzzer, p)
 

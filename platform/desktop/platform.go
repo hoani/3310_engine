@@ -16,6 +16,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"github.com/hoani/3310_engine/engine"
+	"github.com/hoani/3310_engine/engine/command"
 	"github.com/hoani/3310_engine/platform/desktop/soundplayer"
 	"github.com/shirou/gopsutil/v4/process"
 )
@@ -76,6 +77,7 @@ type Platform struct {
 	debug     *Debug
 	lastDraw  time.Time
 	snd       *soundplayer.Player
+	keypad    *command.CommandImpl[engine.Key]
 }
 
 func (p *Platform) Console(format string, args ...any) {
@@ -87,6 +89,7 @@ func (p *Platform) Console(format string, args ...any) {
 }
 
 func (p *Platform) Update() error {
+	p.keypad.Update()
 	if err := p.game.Update(); err != nil {
 		return err
 	}
@@ -214,7 +217,16 @@ func Launch(game engine.Game, launcher Launcher) {
 	snd, err := soundplayer.New()
 	HandleError(err)
 
-	p := &Platform{game: game, colors: NewGameColors(), canvas: NewCanvas(), shadowing: ebiten.NewImage(84, 48), scale: 10.0, ratio: 1.25, lastDraw: time.Now(), snd: snd}
+	p := &Platform{
+		game:      game,
+		colors:    NewGameColors(),
+		canvas:    NewCanvas(),
+		shadowing: ebiten.NewImage(84, 48),
+		scale:     10.0, ratio: 1.25,
+		lastDraw: time.Now(),
+		snd:      snd,
+		keypad:   cmd,
+	}
 
 	game.Setup(cmd, snd, p)
 

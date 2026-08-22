@@ -19,7 +19,7 @@ func KeyPressedFunc(keys ...ebiten.Key) func() bool {
 	}
 }
 
-func NewKeypad() *command.Command[engine.Key] {
+func NewKeypad() *command.CommandImpl[engine.Key] {
 
 	cmd := command.New[engine.Key]()
 	cmd.Register(engine.K1, KeyPressedFunc(ebiten.Key1, ebiten.KeyNumpad7))

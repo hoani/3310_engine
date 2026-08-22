@@ -18,17 +18,16 @@ type Item struct {
 }
 
 type Game struct {
-	count  int
 	draw   draw.Draw
 	snd    engine.SoundPlayer
 	debug  engine.Debug
-	keypad *command.Command[engine.Key]
+	keypad command.Command[engine.Key]
 	info   *engine.GameInfo
 	index  int
 	items  []Item
 }
 
-func (g *Game) Setup(keypad *command.Command[engine.Key], snd engine.SoundPlayer, debug engine.Debug) {
+func (g *Game) Setup(keypad command.Command[engine.Key], snd engine.SoundPlayer, debug engine.Debug) {
 	g.keypad = keypad
 	g.debug = debug
 	g.snd = snd
@@ -39,23 +38,17 @@ func (g *Game) Info() *engine.GameInfo {
 }
 
 func (g *Game) Update() error {
-	g.count++
-
-	g.keypad.Update()
-
 	if g.keypad.Pressed(engine.KB) {
 		g.info.Illuminated = !g.info.Illuminated
 	}
 	if g.keypad.Pressed(engine.KC) {
 		g.index = (g.index + 1) % len(g.items)
-		g.count = 0
 	}
 	if g.keypad.Pressed(engine.KD) {
 		g.index = (g.index - 1)
 		if g.index < 0 {
 			g.index += len(g.items)
 		}
-		g.count = 0
 	}
 
 	return g.items[g.index].update()

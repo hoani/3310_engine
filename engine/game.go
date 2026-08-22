@@ -13,7 +13,7 @@ type GameInfo struct {
 }
 
 type Game interface {
-	Setup(cmd *command.Command[Key], snd SoundPlayer, debug Debug)
+	Setup(cmd command.Command[Key], snd SoundPlayer, debug Debug)
 	Info() *GameInfo
 	Update() error
 	Draw(canvas Canvas) error

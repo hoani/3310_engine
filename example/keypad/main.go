@@ -8,9 +8,8 @@ import (
 )
 
 type Game struct {
-	count  int
 	draw   draw.Draw
-	keypad *command.Command[engine.Key]
+	keypad command.Command[engine.Key]
 	debug  engine.Debug
 	ypos   int
 	xpos   int
@@ -18,7 +17,7 @@ type Game struct {
 	info   *engine.GameInfo
 }
 
-func (g *Game) Setup(keypad *command.Command[engine.Key], snd engine.SoundPlayer, debug engine.Debug) {
+func (g *Game) Setup(keypad command.Command[engine.Key], snd engine.SoundPlayer, debug engine.Debug) {
 	g.keypad = keypad
 	g.debug = debug
 }
@@ -28,9 +27,6 @@ func (g *Game) Info() *engine.GameInfo {
 }
 
 func (g *Game) Update() error {
-	g.keypad.Update()
-	g.count++
-
 	if g.keypad.Pressed(engine.K2) {
 		g.ypos -= 4
 	}

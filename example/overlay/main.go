@@ -19,12 +19,12 @@ type Game struct {
 	draw   draw.Draw
 	debug  engine.Debug
 	info   *engine.GameInfo
-	keypad *command.Command[engine.Key]
+	keypad command.Command[engine.Key]
 	index  int
 	items  []Item
 }
 
-func (g *Game) Setup(keypad *command.Command[engine.Key], snd engine.SoundPlayer, debug engine.Debug) {
+func (g *Game) Setup(keypad command.Command[engine.Key], snd engine.SoundPlayer, debug engine.Debug) {
 	g.debug = debug
 	g.keypad = keypad
 }
@@ -34,8 +34,6 @@ func (g *Game) Info() *engine.GameInfo {
 }
 
 func (g *Game) Update() error {
-	g.keypad.Update()
-
 	if g.keypad.Pressed(engine.KB) {
 		g.info.Illuminated = !g.info.Illuminated
 	}
