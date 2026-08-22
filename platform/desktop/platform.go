@@ -205,14 +205,34 @@ func handleError(err error) {
 	os.Exit(1)
 }
 
-func Run(game engine.Game) {
+type Launcher interface {
+	Setup(p *Platform)
+	Run()
+}
 
-	cmd := NewKeypad()
+type defaultLauncher struct{ p *Platform }
 
+func NewDefaultLauncher() *defaultLauncher {
+	return &defaultLauncher{}
+}
+
+func (l *defaultLauncher) Setup(p *Platform) {
+	l.p = p
+}
+
+func (l *defaultLauncher) Run() {
 	ebiten.SetWindowSize(840, 480)
 	ebiten.SetWindowTitle("Hoani's World")
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
 
+	ebiten.SetRunnableOnUnfocused(true)
+
+	handleError(ebiten.RunGame(l.p))
+}
+
+func Launch(game engine.Game, launcher Launcher) {
+
+	cmd := NewKeypad()
 	snd, err := soundplayer.New()
 	handleError(err)
 
@@ -237,8 +257,12 @@ func Run(game engine.Game) {
 	p.shader.screen, err = ebiten.NewShader(Screen_kage)
 	handleError(err)
 
-	ebiten.SetRunnableOnUnfocused(true)
+	launcher.Setup(p)
+	launcher.Run()
+}
 
-	handleError(ebiten.RunGame(p))
+func Run(game engine.Game) {
+	l := NewDefaultLauncher()
 
+	Launch(game, l)
 }
