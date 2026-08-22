@@ -197,7 +197,7 @@ func (p *Platform) Layout(outsideWidth, outsideHeight int) (screenWidth, screenH
 	return outsideWidth, outsideHeight
 }
 
-func handleError(err error) {
+func HandleError(err error) {
 	if err == nil {
 		return
 	}
@@ -205,36 +205,11 @@ func handleError(err error) {
 	os.Exit(1)
 }
 
-type Launcher interface {
-	Setup(p *Platform)
-	Run()
-}
-
-type defaultLauncher struct{ p *Platform }
-
-func NewDefaultLauncher() *defaultLauncher {
-	return &defaultLauncher{}
-}
-
-func (l *defaultLauncher) Setup(p *Platform) {
-	l.p = p
-}
-
-func (l *defaultLauncher) Run() {
-	ebiten.SetWindowSize(840, 480)
-	ebiten.SetWindowTitle("Hoani's World")
-	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
-
-	ebiten.SetRunnableOnUnfocused(true)
-
-	handleError(ebiten.RunGame(l.p))
-}
-
 func Launch(game engine.Game, launcher Launcher) {
 
 	cmd := NewKeypad()
 	snd, err := soundplayer.New()
-	handleError(err)
+	HandleError(err)
 
 	p := &Platform{game: game, colors: NewGameColors(), canvas: NewCanvas(), shadowing: ebiten.NewImage(84, 48), scale: 10.0, ratio: 1.25, lastDraw: time.Now(), snd: snd}
 
@@ -242,9 +217,9 @@ func Launch(game engine.Game, launcher Launcher) {
 
 	if game.Info().Debug {
 		proc, err := NewProcess()
-		handleError(err)
+		HandleError(err)
 		fnt, err := text.NewGoTextFaceSource(bytes.NewReader(Debug_ttf))
-		handleError(err)
+		HandleError(err)
 		p.debug = &Debug{
 			proc: proc,
 			fnt:  fnt,
@@ -252,13 +227,13 @@ func Launch(game engine.Game, launcher Launcher) {
 	}
 
 	p.shader.shadowing, err = ebiten.NewShader(Shadowing_kage)
-	handleError(err)
+	HandleError(err)
 
 	p.shader.screen, err = ebiten.NewShader(Screen_kage)
-	handleError(err)
+	HandleError(err)
 
 	launcher.Setup(p)
-	launcher.Run()
+	HandleError(launcher.Run())
 }
 
 func Run(game engine.Game) {

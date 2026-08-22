@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/hoani/3310_engine/engine"
 	"github.com/hoani/3310_engine/engine/command"
 	"github.com/hoani/3310_engine/engine/draw"
@@ -9,7 +11,6 @@ import (
 	"github.com/hoani/3310_engine/engine/sprite"
 	"github.com/hoani/3310_engine/example/fonts/cink"
 	"github.com/hoani/3310_engine/example/sprite/sprites/pgm"
-	"github.com/hoani/3310_engine/platform"
 )
 
 type Item struct {
@@ -75,7 +76,7 @@ func (g *Game) Draw(canvas engine.Canvas) error {
 func (g *Game) itemKeypad(name string) Item {
 	snds := make([]engine.Sound, 0, 16)
 	for i := range 16 {
-		snds = append(snds, sound.Sound(10, sound.Note(note.Index(1+i), 0xFF, 8)))
+		snds = append(snds, sound.Sound(10, sound.Note(note.C3+note.Index(i), 0xFF, 8)))
 	}
 
 	text := ""
@@ -107,7 +108,7 @@ func (g *Game) itemSphere() Item {
 
 	snds := make([]engine.Sound, 0, 16)
 	for i := range 16 {
-		snds = append(snds, sound.Sound(10, sound.Note(note.Index(1+i), 0xFF, 8)))
+		snds = append(snds, sound.Sound(10, sound.Note(note.C3+note.Index(i), 0xFF, 8)))
 	}
 
 	pos := 0
@@ -251,5 +252,6 @@ func main() {
 		g.itemBoxer(),
 	)
 
-	platform.Run(g)
+	fmt.Println("Launching game?\n")
+	Launch(g)
 }
