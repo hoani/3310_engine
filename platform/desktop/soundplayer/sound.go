@@ -1,10 +1,9 @@
-package desktop
+//go:build !tinygo
+
+package soundplayer
 
 import (
 	"bytes"
-	"encoding/binary"
-	"io"
-	"math"
 	"sync"
 	"time"
 
@@ -17,7 +16,7 @@ const sampleRate = 44100
 
 const maxInt16 float64 = 32767.0
 
-type SoundPlayer struct {
+type Player struct {
 	// Oto player
 	ctx    *oto.Context
 	player *oto.Player
@@ -29,7 +28,7 @@ type SoundPlayer struct {
 	notes   [note.Total]*voice
 }
 
-func NewSoundPlayer() (*SoundPlayer, error) {
+func New() (*Player, error) {
 	ctx, ready, err := oto.NewContext(&oto.NewContextOptions{
 		SampleRate:   sampleRate,
 		ChannelCount: 1,
@@ -41,9 +40,9 @@ func NewSoundPlayer() (*SoundPlayer, error) {
 	}
 	<-ready
 
-	p := &SoundPlayer{
+	p := &Player{
 		ctx:     ctx,
-		filters: []*biquad{newBandpass(3442, 1.63), newBandpass(5411, 9.75)},
+		filters: newBuzzerFilters(),
 		src:     &source{},
 	}
 	p.src.reload = p.reload
@@ -59,12 +58,12 @@ func NewSoundPlayer() (*SoundPlayer, error) {
 	return p, nil
 }
 
-func (p *SoundPlayer) Track(s engine.Sound, loop bool) {
+func (p *Player) Track(s engine.Sound, loop bool) {
 	p.load(s, true, loop)
 	p.track = p.src.get()
 }
 
-func (p *SoundPlayer) Play(s engine.Sound) {
+func (p *Player) Play(s engine.Sound) {
 	current := p.src.get()
 	if current.music {
 		p.track.pos = current.pos
@@ -72,14 +71,14 @@ func (p *SoundPlayer) Play(s engine.Sound) {
 	p.load(s, false, false)
 }
 
-func (p *SoundPlayer) reload() sourceData {
+func (p *Player) reload() sourceData {
 	if p.track.music {
 		return p.track
 	}
 	return sourceData{}
 }
 
-func (p *SoundPlayer) load(s engine.Sound, music, loop bool) {
+func (p *Player) load(s engine.Sound, music, loop bool) {
 	var buf bytes.Buffer
 	p.player.Pause()
 	s.Reset()
@@ -100,93 +99,10 @@ func (p *SoundPlayer) load(s engine.Sound, music, loop bool) {
 	p.player.Play()
 }
 
-func (p *SoundPlayer) Stop() {
+func (p *Player) Stop() {
 	p.player.Pause()
 	p.src.set(nil, false, false)
 	p.track = sourceData{}
-}
-
-type biquad struct {
-	b0, b1, b2, a1, a2 float64
-	x1, x2, y1, y2     float64
-}
-
-func newBandpass(fc, q float64) *biquad {
-	w0 := 2 * math.Pi * fc / sampleRate
-	al := math.Sin(w0) / (2 * q)
-	c := math.Cos(w0)
-	a0 := 1 + al
-	return &biquad{b0: al / a0, b1: 0, b2: -al / a0,
-		a1: -2 * c / a0, a2: (1 - al) / a0}
-}
-
-func (f *biquad) process(x float64) float64 {
-	y := f.b0*x + f.b1*f.x1 + f.b2*f.x2 - f.a1*f.y1 - f.a2*f.y2
-	f.x2, f.x1 = f.x1, x
-	f.y2, f.y1 = f.y1, y
-	return y
-}
-
-func (f *biquad) reset() { f.x1, f.x2, f.y1, f.y2 = 0, 0, 0, 0 }
-
-type voice struct {
-	freq    float64
-	filters []*biquad
-}
-
-func newVoice(freq float64, filters []*biquad) *voice {
-	return &voice{
-		freq:    freq,
-		filters: filters,
-	}
-}
-
-// polyBlep returns the correction for a discontinuity, where t is the
-// current phase (0..1) and dt is the phase increment per sample.
-func polyBlep(t, dt float64) float64 {
-	if t < dt {
-		// first sample after the reset
-		t /= dt
-		return t + t - t*t - 1
-	}
-	if t > 1.0-dt {
-		// last sample before the reset
-		t = (t - 1.0) / dt
-		return t*t + t + t + 1.0
-	}
-	return 0
-}
-
-func (s *voice) Generate(dur time.Duration, amplitude uint8, w io.Writer) error {
-	N := int((sampleRate * dur) / time.Second)
-
-	volume := (maxInt16 * float64(amplitude)) / float64(0xff)
-
-	var phase float64 = 0
-
-	dt := s.freq / sampleRate
-	for range N {
-		saw := 2.0*phase - 1.0
-		saw -= polyBlep(phase, dt)
-
-		v := saw * 2.7 // Compensate filter attenuation.
-		for _, f := range s.filters {
-			v = f.process(v)
-		}
-
-		// Clamp, just in case.
-		v = math.Min(math.Max(v, -1.0), 1.0)
-
-		out := int32(v * volume)
-		if err := binary.Write(w, binary.LittleEndian, uint16(out)); err != nil {
-			return err
-		}
-		phase += dt
-		if phase >= 1.0 {
-			phase -= 1.0
-		}
-	}
-	return nil
 }
 
 // Source plays sound continuously, this emulates a buzzer that we can feed generated sound into.

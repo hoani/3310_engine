@@ -1,3 +1,5 @@
+//go:build !tinygo
+
 package desktop
 
 import (
@@ -14,6 +16,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"github.com/hoani/3310_engine/engine"
+	"github.com/hoani/3310_engine/platform/desktop/soundplayer"
 	"github.com/shirou/gopsutil/v4/process"
 )
 
@@ -72,7 +75,7 @@ type Platform struct {
 	resized   bool
 	debug     *Debug
 	lastDraw  time.Time
-	snd       *SoundPlayer
+	snd       *soundplayer.Player
 }
 
 func (p *Platform) Console(format string, args ...any) {
@@ -210,7 +213,7 @@ func Run(game engine.Game) {
 	ebiten.SetWindowTitle("Hoani's World")
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
 
-	snd, err := NewSoundPlayer()
+	snd, err := soundplayer.New()
 	handleError(err)
 
 	p := &Platform{game: game, colors: NewGameColors(), canvas: NewCanvas(), shadowing: ebiten.NewImage(84, 48), scale: 10.0, ratio: 1.25, lastDraw: time.Now(), snd: snd}
