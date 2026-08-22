@@ -78,6 +78,7 @@ type Platform struct {
 	lastDraw  time.Time
 	snd       *soundplayer.Player
 	keypad    *command.CommandImpl[engine.Key]
+	sw, sh    int
 }
 
 func (p *Platform) Console(format string, args ...any) {
@@ -184,6 +185,10 @@ func (p *Platform) Draw(screen *ebiten.Image) {
 }
 
 func (p *Platform) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
+	if p.sw == outsideWidth && p.sh == outsideHeight {
+		return p.sw, p.sh // Nothing to change.
+	}
+
 	var ratio = p.ratio * float64(outsideWidth) / float64(outsideHeight)
 	next := 0.0
 	if ratio <= 84.0/48.0 {
@@ -191,14 +196,21 @@ func (p *Platform) Layout(outsideWidth, outsideHeight int) (screenWidth, screenH
 	} else {
 		next = math.Floor(float64(outsideHeight) / (p.ratio * 48.0))
 	}
+	if next > 6 {
+		next -= 1
+	}
+
 	if next != p.scale {
-		if next > 6 {
-			next -= 1
+
+		if p.game.Info().Debug {
+			fmt.Printf("%d set scale %f\n", time.Now().Second(), p.scale)
 		}
-		fmt.Printf("set scale %f\n", p.scale)
 		p.scale = next // math.Floor(float64(outsideHeight) / (p.ratio * 48.0))
 		p.resized = true
 	}
+
+	p.sw = outsideWidth
+	p.sh = outsideHeight
 
 	return outsideWidth, outsideHeight
 }

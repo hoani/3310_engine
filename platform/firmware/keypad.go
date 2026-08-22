@@ -17,7 +17,7 @@ type Keypad struct {
 	changed [16]bool
 }
 
-func NewKeypad(col [4]machine.Pin, row [4]machine.Pin) (*Keypad, *command.Command[engine.Key]) {
+func NewKeypad(col [4]machine.Pin, row [4]machine.Pin) (*Keypad, *command.CommandImpl[engine.Key]) {
 	for _, in := range row {
 		in.Configure(machine.PinConfig{Mode: machine.PinInputPulldown})
 	}

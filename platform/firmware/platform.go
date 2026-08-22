@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/hoani/3310_engine/engine"
+	"github.com/hoani/3310_engine/engine/command"
 	"github.com/hoani/3310_engine/platform/firmware/board"
 	"tinygo.org/x/drivers/pcd8544"
 )
