@@ -1,8 +1,6 @@
 package main
 
 import (
-	"fmt"
-
 	"github.com/hoani/3310_engine/engine"
 	"github.com/hoani/3310_engine/engine/command"
 	"github.com/hoani/3310_engine/engine/draw"
@@ -252,6 +250,5 @@ func main() {
 		g.itemBoxer(),
 	)
 
-	fmt.Println("Launching game?\n")
 	Launch(g)
 }

@@ -189,8 +189,11 @@ func (p *Platform) Layout(outsideWidth, outsideHeight int) (screenWidth, screenH
 		next = math.Floor(float64(outsideHeight) / (p.ratio * 48.0))
 	}
 	if next != p.scale {
+		if next > 6 {
+			next -= 1
+		}
 		fmt.Printf("set scale %f\n", p.scale)
-		p.scale = math.Floor(float64(outsideHeight) / (p.ratio * 48.0))
+		p.scale = next // math.Floor(float64(outsideHeight) / (p.ratio * 48.0))
 		p.resized = true
 	}
 
