@@ -2,6 +2,8 @@ package draw
 
 import "github.com/hoani/3310_engine/engine"
 
+var DefaultSpriteOpts = &SpriteOpts{}
+
 type SpriteAlign uint8
 
 const (
@@ -135,6 +137,9 @@ func (a SpriteAlign) Apply(x, y, w, h int) (int, int) {
 }
 
 func (d *draw) Sprite(x, y int, spr engine.Sprite, index int, opts *SpriteOpts) {
+	if opts == nil {
+		opts = DefaultSpriteOpts
+	}
 
 	w, h := spr.Width(), spr.Height()
 	i0 := 0

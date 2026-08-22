@@ -62,7 +62,7 @@ func (t *TextBuilder) VAlign(fa FontAlign) *TextBuilder {
 
 func (t *TextBuilder) Draw(on bool, opts *Opts) {
 	if opts == nil {
-		opts = &DefaultOpts
+		opts = DefaultOpts
 	}
 	t.canvas.SetOpts(opts)
 

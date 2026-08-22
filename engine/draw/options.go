@@ -1,11 +1,11 @@
 package draw
 
-var DefaultOpts = Opts{}
+var DefaultOpts = &Opts{}
 
 type OutlineOpts struct {
 	Apply bool
 	Ink   bool
-	Only bool
+	Only  bool
 }
 
 type DitherFunc func(x, y int, value uint8) bool

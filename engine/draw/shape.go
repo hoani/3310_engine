@@ -80,6 +80,9 @@ func (b *ShapeBuilder) DrawShade(shade uint8, opts *Opts) {
 	if b.active == nil {
 		return
 	}
+	if opts == nil {
+		opts = DefaultOpts
+	}
 	b.opts = opts
 	b.shade = shade
 	switch shade {
@@ -100,6 +103,9 @@ func (b *ShapeBuilder) DrawShade(shade uint8, opts *Opts) {
 func (b *ShapeBuilder) Draw(on bool, opts *Opts) {
 	if b.active == nil {
 		return
+	}
+	if opts == nil {
+		opts = DefaultOpts
 	}
 	b.opts = opts
 
