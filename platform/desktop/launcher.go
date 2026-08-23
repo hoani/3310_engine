@@ -72,6 +72,7 @@ func (l *defaultLauncher) Run() error {
 	ebiten.SetWindowSize(840, 480)
 	ebiten.SetWindowTitle("Default Launcher")
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
+	ebiten.SetTPS(l.p.game.Info().Fps)
 
 	ebiten.SetRunnableOnUnfocused(true)
 
