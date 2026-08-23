@@ -110,6 +110,9 @@ func (g *Game) drawOval(canvas engine.Canvas) error {
 	g.draw.Oval(draw.P(42, 24), 25, 20).Draw(true, opts)
 	g.draw.Oval(draw.P(42, 24), 23, 5).Draw(false, opts)
 
+	g.draw.Oval(draw.P(12, 12), 10, 8).Draw(true, opts)
+	g.draw.Oval(draw.P(12, 24), 15, 12).Draw(true, opts)
+
 	return nil
 }
 
