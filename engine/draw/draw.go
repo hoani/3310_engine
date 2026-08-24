@@ -31,8 +31,8 @@ func P(x, y int) Point {
 type Draw interface {
 	Triangle(p0, p1, p2 Point) *ShapeBuilder
 	Shape(s ShapeDrawer) *ShapeBuilder
-	Circle(center Point, diameter int16) *ShapeBuilder
-	Oval(center Point, width int16, height int16) *ShapeBuilder
+	Circle(center Point, diameter uint16) *ShapeBuilder
+	Oval(center Point, width uint16, height uint16) *ShapeBuilder
 	Rectangle(x0, y0, x1, y1 int) *ShapeBuilder
 	Line(x0, y0, x1, y1 int) *ShapeBuilder
 	Sprite(x, y int, spr engine.Sprite, index int, opts *SpriteOpts)
@@ -80,10 +80,10 @@ func (d *draw) Triangle(p0, p1, p2 Point) *ShapeBuilder {
 	return d.shapeBuilder.Triangle(p0, p1, p2)
 }
 
-func (d *draw) Circle(center Point, diameter int16) *ShapeBuilder {
+func (d *draw) Circle(center Point, diameter uint16) *ShapeBuilder {
 	return d.shapeBuilder.Circle(center, diameter)
 }
 
-func (d *draw) Oval(center Point, width int16, height int16) *ShapeBuilder {
+func (d *draw) Oval(center Point, width uint16, height uint16) *ShapeBuilder {
 	return d.shapeBuilder.Oval(center, width, height)
 }

@@ -113,6 +113,10 @@ func (g *Game) drawOval(canvas engine.Canvas) error {
 	g.draw.Oval(draw.P(12, 12), 10, 8).Draw(true, opts)
 	g.draw.Oval(draw.P(12, 24), 15, 12).Draw(true, opts)
 
+	opts.WithOutlineOnly()
+	g.draw.Oval(draw.P(72, 12), 10, 10).Draw(true, opts)
+	g.draw.Circle(draw.P(72, 24), 10).Draw(true, opts)
+
 	return nil
 }
 
@@ -276,6 +280,7 @@ func main() {
 	}
 	g.items = append(
 		g.items,
+		Item{draw: g.drawOval, name: "Oval"},
 		Item{draw: g.drawLine, name: "Line"},
 		Item{draw: g.drawTriangleFan(true, draw.NewOpts()), name: "TriangleFan"},
 		Item{draw: g.drawTriangleFan(true, draw.NewOpts().WithOutlineOnly()), name: "TriangleFan Outline"},
@@ -284,7 +289,6 @@ func main() {
 		Item{draw: g.drawShapes(draw.NewOpts().WithOutline(false)), name: "With Outline"},
 		Item{draw: g.drawShapes(draw.NewOpts().WithOutlineOnly()), name: "Outline Only"},
 		Item{draw: g.drawShapes(draw.NewOpts()), name: "No Outlines"},
-		Item{draw: g.drawOval, name: "Oval"},
 		Item{draw: g.drawTriangle, name: "Triangle"},
 		Item{draw: g.drawCircle, name: "Circles"},
 		Item{draw: g.drawRectangle, name: "Rectangle"},

@@ -16,13 +16,13 @@ type LineBuilder struct {
 
 type CircleBuilder struct {
 	center   Point
-	diameter int16
+	diameter uint16
 }
 
 type OvalBuilder struct {
 	center Point
-	width  int16
-	height int16
+	width  uint16
+	height uint16
 }
 
 type TriangleBuilder struct {
@@ -176,7 +176,7 @@ func (b *RectangleBuilder) Outline(drawPixel drawPixel) {
 	line(drawPixel, Point{b.p0.X, b.p1.Y}, b.p1)
 }
 
-func (sb *ShapeBuilder) Circle(center Point, diameter int16) *ShapeBuilder {
+func (sb *ShapeBuilder) Circle(center Point, diameter uint16) *ShapeBuilder {
 	b := &sb.circle
 	b.center = center
 	b.diameter = diameter
@@ -196,11 +196,7 @@ func (b *CircleBuilder) draw(drawPixel drawPixel, fill bool) {
 		v := 2*j + offset
 		v2 := v * v
 		lineDone := false
-		for i := 0; i < radius; i++ {
-			x0 := (b.center.X - i) - offset
-			y0 := (b.center.Y - j) - offset
-			x1 := b.center.X + i
-			y1 := b.center.Y + j
+		for i := range radius {
 
 			if i >= last {
 				u := 2*(i+1) + offset
@@ -210,6 +206,11 @@ func (b *CircleBuilder) draw(drawPixel drawPixel, fill bool) {
 					lineDone = true
 				}
 			}
+
+			x0 := (b.center.X - i) - offset
+			y0 := (b.center.Y - j) - offset
+			x1 := b.center.X + i
+			y1 := b.center.Y + j
 
 			if fill || j == radius-1 || lineDone || i > last {
 				drawPixel(x0, y0)
@@ -233,7 +234,7 @@ func (b *CircleBuilder) Outline(drawPixel drawPixel) {
 	b.draw(drawPixel, false)
 }
 
-func (sb *ShapeBuilder) Oval(center Point, width, height int16) *ShapeBuilder {
+func (sb *ShapeBuilder) Oval(center Point, width, height uint16) *ShapeBuilder {
 	b := &sb.oval
 	b.center = center
 	b.width = width
@@ -268,11 +269,13 @@ func (b *OvalBuilder) draw(drawPixel drawPixel, fill bool) {
 	last := 0
 
 	for j := jmax - 1; j >= 0; j-- {
-		limit := w2*h2 - 4*j*j*w2
+		v := 2*j + yoffset
+		limit := w2*h2 - v*v*w2
 		lineDone := false
-		for i := 0; i < imax; i++ {
+		for i := range imax {
 			if i >= last {
-				check := 4 * (i + 1) * (i + 1) * h2
+				u := 2*(i+1) + xoffset
+				check := u * u * h2
 				if check > limit {
 					last = i
 					lineDone = true
