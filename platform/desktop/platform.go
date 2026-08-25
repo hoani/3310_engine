@@ -6,6 +6,7 @@ import (
 	"bytes"
 	_ "embed"
 	"fmt"
+	"image"
 	"image/color"
 	_ "image/png"
 	"math"
@@ -73,12 +74,12 @@ type Platform struct {
 	shadowing *ebiten.Image
 	scale     float64
 	ratio     float64
-	resized   bool
 	debug     *Debug
 	lastDraw  time.Time
 	snd       *soundplayer.Player
 	keypad    *command.CommandImpl[engine.Key]
 	sw, sh    int
+	drawPort  *image.Rectangle
 }
 
 func (p *Platform) Console(format string, args ...any) {
@@ -124,9 +125,6 @@ func (p *Platform) Draw(screen *ebiten.Image) {
 
 	p.shadowing.DrawRectShader(p.canvas.Width(), p.canvas.Height(), p.shader.shadowing, opts)
 
-	xOffset := math.Round(float64(screen.Bounds().Size().X)-p.scale*float64(p.canvas.Width())) / 2.0
-	yOffset := math.Round(float64(screen.Bounds().Size().Y)-p.scale*p.ratio*float64(p.canvas.Height())) / 2.0
-
 	opts = &ebiten.DrawRectShaderOptions{}
 	opts.Uniforms = map[string]any{
 		"PixelOn":   p.colors.On,
@@ -134,17 +132,15 @@ func (p *Platform) Draw(screen *ebiten.Image) {
 		"PixelBack": p.colors.Back,
 		"XScale":    p.scale,
 		"YScale":    p.ratio * p.scale,
-		"XOffset":   xOffset,
-		"YOffset":   yOffset,
+		"XOffset":   p.drawPort.Min.X,
+		"YOffset":   p.drawPort.Min.Y,
 	}
 	opts.Images[0] = p.shadowing
 	opts.GeoM.Scale(p.scale, p.scale*p.ratio)
 
-	opts.GeoM.Translate(xOffset, yOffset)
+	opts.GeoM.Translate(float64(p.drawPort.Min.X), float64(p.drawPort.Min.Y))
 
-	if p.resized {
-		screen.Fill(color.RGBA{0xce, 0xf9, 0xe0, 0xff})
-	}
+	screen.Fill(color.RGBA{0xce, 0xf9, 0xe0, 0xff})
 
 	screen.DrawRectShader(p.canvas.Width(), p.canvas.Height(), p.shader.screen, opts)
 
@@ -184,6 +180,18 @@ func (p *Platform) Draw(screen *ebiten.Image) {
 	}
 }
 
+func (p *Platform) computeDrawPort(screenWidth, screenHeight int) {
+	x0 := math.Round(float64(screenWidth)-p.scale*float64(p.canvas.Width())) / 2.0
+	y0 := math.Round(float64(screenHeight)-p.scale*p.ratio*float64(p.canvas.Height())) / 2.0
+	w, h := p.scale*float64(p.canvas.Width()), p.scale*p.ratio*float64(p.canvas.Height())
+	rect := image.Rect(int(x0), int(y0), int(x0+w), int(y0+h))
+	p.drawPort = &rect
+}
+
+func (p *Platform) DrawPort(screen *ebiten.Image) *image.Rectangle {
+	return p.drawPort
+}
+
 func (p *Platform) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
 	if p.sw == outsideWidth && p.sh == outsideHeight {
 		return p.sw, p.sh // Nothing to change.
@@ -206,7 +214,7 @@ func (p *Platform) Layout(outsideWidth, outsideHeight int) (screenWidth, screenH
 			fmt.Printf("%d set scale %f\n", time.Now().Second(), p.scale)
 		}
 		p.scale = next // math.Floor(float64(outsideHeight) / (p.ratio * 48.0))
-		p.resized = true
+		p.computeDrawPort(outsideWidth, outsideHeight)
 	}
 
 	p.sw = outsideWidth
@@ -223,7 +231,7 @@ func HandleError(err error) {
 	os.Exit(1)
 }
 
-func Launch(game engine.Game, launcher Launcher) {
+func Launch(game engine.Game, runner Runner) {
 
 	cmd := NewKeypad()
 	snd, err := soundplayer.New()
@@ -259,12 +267,12 @@ func Launch(game engine.Game, launcher Launcher) {
 	p.shader.screen, err = ebiten.NewShader(Screen_kage)
 	HandleError(err)
 
-	launcher.Setup(p)
-	HandleError(launcher.Run())
+	runner.Setup(p)
+	HandleError(runner.Run())
 }
 
 func Run(game engine.Game) {
-	l := NewDefaultLauncher()
+	l := NewDefaultRunner()
 
 	Launch(game, l)
 }

@@ -8,9 +8,9 @@ import (
 )
 
 func Run(game engine.Game) {
-	desktop.Launch(game, desktop.NewDefaultLauncher())
+	desktop.Launch(game, desktop.NewDefaultRunner())
 }
 
-func Launch(game engine.Game, launcher desktop.Launcher) {
-	desktop.Launch(game, launcher)
+func Launch(game engine.Game, runner desktop.Runner) {
+	desktop.Launch(game, runner)
 }
