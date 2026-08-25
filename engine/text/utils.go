@@ -3,10 +3,11 @@ package text
 import (
 	"strings"
 
+	"github.com/hoani/3310_engine/engine"
 	"tinygo.org/x/tinyfont"
 )
 
-func LineWidth(f tinyfont.Fonter, s string) int {
+func LineWidth(f engine.Font, s string) int {
 	parts := strings.Split(s, "\n")
 	w := 0
 	for _, part := range parts {
@@ -18,7 +19,7 @@ func LineWidth(f tinyfont.Fonter, s string) int {
 	return w
 }
 
-func Fit(f tinyfont.Fonter, s string, w int) string {
+func Fit(f engine.Font, s string, w int) string {
 	parts := strings.Split(s, " ")
 	var result strings.Builder
 	line := ""
