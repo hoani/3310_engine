@@ -15,11 +15,12 @@ type Runner interface {
 
 type PreLaunch interface {
 	ebiten.Game
-	Setup()
+	Setup() error
 	Done() bool
 }
 
 type Extension interface {
+	Setup() error
 	Update() error
 	Draw(screen *ebiten.Image, port *image.Rectangle)
 }
@@ -39,7 +40,16 @@ func (r *runner) Setup(p *Platform) {
 }
 
 func (r *runner) Run() error {
-	r.prelaunch.Setup()
+	if err := r.prelaunch.Setup(); err != nil {
+		return err
+	}
+
+	for _, extension := range r.extensions {
+		if err := extension.Setup(); err != nil {
+			return err
+		}
+	}
+
 	return ebiten.RunGame(r)
 }
 
@@ -112,11 +122,12 @@ func NewDefaultPreLaunch(w, h int, name string) PreLaunch {
 	}
 }
 
-func (l *defaultPreLaunch) Setup() {
+func (l *defaultPreLaunch) Setup() error {
 	ebiten.SetWindowSize(840, 480)
 	ebiten.SetWindowTitle(l.name)
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
 	ebiten.SetRunnableOnUnfocused(true)
+	return nil
 }
 
 func (l *defaultPreLaunch) Done() bool {

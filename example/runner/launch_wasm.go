@@ -31,11 +31,12 @@ func NewWasmPrelaunch(name string) desktop.PreLaunch {
 	}
 }
 
-func (l *WasmPrelaunch) Setup() {
+func (l *WasmPrelaunch) Setup() error {
 	ebiten.SetWindowSize(840, 480)
 	ebiten.SetWindowTitle(l.name)
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
 	ebiten.SetRunnableOnUnfocused(true)
+	return nil
 }
 
 func (l *WasmPrelaunch) Done() bool {
