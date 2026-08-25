@@ -90,6 +90,38 @@ func (g *Game) play(name string) Item {
 
 }
 
+func (g *Game) notes(name string) Item {
+
+	index := note.C6
+	tune := sound.Sound(10)
+	text := note.Name(index)
+
+	return Item{
+		name: name,
+		update: func() error {
+			if g.keypad.Pressed(engine.K4) {
+				index--
+				text = note.Name(index)
+			}
+			if g.keypad.Pressed(engine.K5) {
+				tune = sound.Sound(50, sound.Note(index, 0xFF, 2))
+				g.snd.Play(tune)
+			}
+			if g.keypad.Pressed(engine.K6) {
+				index++
+				text = note.Name(index)
+			}
+
+			return nil
+		},
+		draw: func(canvas engine.Canvas) error {
+			g.draw.Text(42, 24, text).Font(&cink.Frogotype).HAlign(draw.FaCenter).VAlign(draw.FaMiddle).Draw(true, nil)
+			return nil
+		},
+	}
+
+}
+
 func (g *Game) custom(name string) Item {
 
 	freq := float32(500.0)
@@ -135,8 +167,9 @@ func main() {
 	g := &Game{info: &engine.GameInfo{Debug: true, Fps: 60}}
 	g.items = append(
 		g.items,
-		g.play("basic"),
+		g.notes("notes"),
 		g.custom("custom"),
+		g.play("basic"),
 	)
 
 	platform.Run(g)
