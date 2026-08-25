@@ -125,6 +125,9 @@ func (p *Platform) Draw(screen *ebiten.Image) {
 
 	p.shadowing.DrawRectShader(p.canvas.Width(), p.canvas.Height(), p.shader.shadowing, opts)
 
+	xOffset := math.Round(float64(screen.Bounds().Size().X)-p.scale*float64(p.canvas.Width())) / 2.0
+	yOffset := math.Round(float64(screen.Bounds().Size().Y)-p.scale*p.ratio*float64(p.canvas.Height())) / 2.0
+
 	opts = &ebiten.DrawRectShaderOptions{}
 	opts.Uniforms = map[string]any{
 		"PixelOn":   p.colors.On,
@@ -132,13 +135,13 @@ func (p *Platform) Draw(screen *ebiten.Image) {
 		"PixelBack": p.colors.Back,
 		"XScale":    p.scale,
 		"YScale":    p.ratio * p.scale,
-		"XOffset":   p.drawPort.Min.X,
-		"YOffset":   p.drawPort.Min.Y,
+		"XOffset":   xOffset,
+		"YOffset":   yOffset,
 	}
 	opts.Images[0] = p.shadowing
 	opts.GeoM.Scale(p.scale, p.scale*p.ratio)
 
-	opts.GeoM.Translate(float64(p.drawPort.Min.X), float64(p.drawPort.Min.Y))
+	opts.GeoM.Translate(xOffset, yOffset)
 
 	screen.Fill(color.RGBA{0xce, 0xf9, 0xe0, 0xff})
 
@@ -188,7 +191,7 @@ func (p *Platform) computeDrawPort(screenWidth, screenHeight int) {
 	p.drawPort = &rect
 }
 
-func (p *Platform) DrawPort(screen *ebiten.Image) *image.Rectangle {
+func (p *Platform) DrawPort() *image.Rectangle {
 	return p.drawPort
 }
 

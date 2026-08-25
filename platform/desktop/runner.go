@@ -21,16 +21,17 @@ type PreLaunch interface {
 
 type Extension interface {
 	Update() error
-	Draw(screen *ebiten.Image, port image.Rectangle)
+	Draw(screen *ebiten.Image, port *image.Rectangle)
 }
 
 type runner struct {
-	prelaunch PreLaunch
-	platform  *Platform
+	prelaunch  PreLaunch
+	platform   *Platform
+	extensions []Extension
 }
 
-func NewRunner(prelaunch PreLaunch) Runner {
-	return &runner{prelaunch: prelaunch}
+func NewRunner(prelaunch PreLaunch, extensions ...Extension) *runner {
+	return &runner{prelaunch: prelaunch, extensions: extensions}
 }
 
 func (r *runner) Setup(p *Platform) {
@@ -43,18 +44,32 @@ func (r *runner) Run() error {
 }
 
 func (r *runner) Update() error {
-	if r.prelaunch.Done() {
-		return r.platform.Update()
+	if !r.prelaunch.Done() {
+		return r.prelaunch.Update()
 	}
-	return r.prelaunch.Update()
+
+	if err := r.platform.Update(); err != nil {
+		return err
+	}
+
+	for _, extension := range r.extensions {
+		if err := extension.Update(); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (r *runner) Draw(screen *ebiten.Image) {
-	if r.prelaunch.Done() {
-		r.platform.Draw(screen)
+	if !r.prelaunch.Done() {
+		r.prelaunch.Draw(screen)
 		return
 	}
-	r.prelaunch.Draw(screen)
+
+	r.platform.Draw(screen)
+	for _, extension := range r.extensions {
+		extension.Draw(screen, r.platform.DrawPort())
+	}
 }
 
 func (r *runner) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
@@ -84,4 +99,37 @@ func (r *defaultRunner) Run() error {
 	ebiten.SetRunnableOnUnfocused(true)
 
 	return ebiten.RunGame(r.p)
+}
+
+type defaultPreLaunch struct {
+	w, h int
+	name string
+}
+
+func NewDefaultPreLaunch(w, h int, name string) PreLaunch {
+	return &defaultPreLaunch{
+		w: w, h: h, name: name,
+	}
+}
+
+func (l *defaultPreLaunch) Setup() {
+	ebiten.SetWindowSize(840, 480)
+	ebiten.SetWindowTitle("")
+	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
+	ebiten.SetRunnableOnUnfocused(true)
+}
+
+func (l *defaultPreLaunch) Done() bool {
+	return true
+}
+
+func (l *defaultPreLaunch) Update() error {
+	return nil
+}
+
+func (l *defaultPreLaunch) Draw(screen *ebiten.Image) {
+}
+
+func (l *defaultPreLaunch) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
+	return outsideWidth, outsideHeight
 }
