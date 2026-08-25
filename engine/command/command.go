@@ -11,10 +11,16 @@ type Command[T ~int] interface {
 	Pressed(cmd T) bool
 	Released(cmd T) bool
 	Check(cmd T) bool
+	PressedAny() bool
+	ReleasedAny() bool
+	CheckAny() bool
 }
 
 type CommandImpl[T ~int] struct {
 	registry map[T]*entry
+	active   bool
+	pressed  bool
+	released bool
 }
 
 func New[T ~int]() *CommandImpl[T] {
@@ -34,14 +40,19 @@ func (c *CommandImpl[T]) Register(cmd T, check func() bool) {
 }
 
 func (c *CommandImpl[T]) Update() {
+	c.active = false
+	c.pressed = false
+	c.released = false
 	for _, entry := range c.registry {
 		active := false
 		for _, check := range entry.checks {
 			active = active || check()
+			c.active = true
 		}
 		if active {
 			if !entry.active {
 				entry.pressed = true
+				c.pressed = true
 			} else {
 				entry.pressed = false
 			}
@@ -50,6 +61,7 @@ func (c *CommandImpl[T]) Update() {
 		} else {
 			if entry.active {
 				entry.released = true
+				c.released = true
 			} else {
 				entry.released = false
 			}
@@ -72,4 +84,16 @@ func (c *CommandImpl[T]) Released(cmd T) bool {
 func (c *CommandImpl[T]) Check(cmd T) bool {
 	entry, ok := c.registry[cmd]
 	return ok && entry.active
+}
+
+func (c *CommandImpl[T]) PressedAny() bool {
+	return c.pressed
+}
+
+func (c *CommandImpl[T]) ReleasedAny() bool {
+	return c.released
+}
+
+func (c *CommandImpl[T]) CheckAny() bool {
+	return c.active
 }
