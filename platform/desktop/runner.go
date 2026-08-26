@@ -6,6 +6,7 @@ import (
 	"image"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hoani/3310_engine/engine"
 )
 
 type Runner interface {
@@ -90,25 +91,8 @@ func (r *runner) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHei
 	return r.prelaunch.Layout(outsideWidth, outsideHeight)
 }
 
-type defaultRunner struct{ p *Platform }
-
-func NewDefaultRunner() *defaultRunner {
-	return &defaultRunner{}
-}
-
-func (r *defaultRunner) Setup(p *Platform) {
-	r.p = p
-}
-
-func (r *defaultRunner) Run() error {
-	ebiten.SetWindowSize(840, 480)
-	ebiten.SetWindowTitle("Default Launcher")
-	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
-	ebiten.SetTPS(r.p.game.Info().Fps)
-
-	ebiten.SetRunnableOnUnfocused(true)
-
-	return ebiten.RunGame(r.p)
+func NewDefaultRunner(g engine.Game) *runner {
+	return NewRunner(NewDefaultPreLaunch(840, 480, ""), NewDebugExtension(g))
 }
 
 type defaultPreLaunch struct {

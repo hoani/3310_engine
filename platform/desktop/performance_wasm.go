@@ -12,6 +12,6 @@ func NewProcess() (*process.Process, error) {
 	return &process.Process{}, nil
 }
 
-func (p *Platform) measureCpu() {
-	p.debug.cpu = math.NaN()
+func (d *debugExtension) measureCpu() {
+	d.cpu = math.NaN()
 }

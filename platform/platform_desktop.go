@@ -8,7 +8,7 @@ import (
 )
 
 func Run(game engine.Game) {
-	desktop.Launch(game, desktop.NewDefaultRunner())
+	desktop.Launch(game, desktop.NewDefaultRunner(game))
 }
 
 func Launch(game engine.Game, runner desktop.Runner) {

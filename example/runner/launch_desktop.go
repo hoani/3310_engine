@@ -12,5 +12,5 @@ import (
 
 func Launch(g engine.Game) {
 	fmt.Println("Launching desktop")
-	platform.Launch(g, desktop.NewRunner(desktop.NewDefaultPreLaunch(840, 640, "Runner Test"), &countExtension{}, &frameExtension{}))
+	platform.Launch(g, desktop.NewRunner(desktop.NewDefaultPreLaunch(840, 640, "Runner Test"), &countExtension{}, &frameExtension{}, desktop.NewDebugExtension(g)))
 }

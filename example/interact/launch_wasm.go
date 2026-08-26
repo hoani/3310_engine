@@ -31,11 +31,12 @@ func NewWasmPrelaunch(name string) desktop.PreLaunch {
 	}
 }
 
-func (l *WasmPrelaunch) Setup() {
+func (l *WasmPrelaunch) Setup() error {
 	ebiten.SetWindowSize(840, 480)
 	ebiten.SetWindowTitle(l.name)
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
 	ebiten.SetRunnableOnUnfocused(true)
+	return nil
 }
 
 func (l *WasmPrelaunch) Done() bool {
@@ -70,5 +71,5 @@ func (l *WasmPrelaunch) Layout(outsideWidth, outsideHeight int) (screenWidth, sc
 }
 
 func Launch(g engine.Game) {
-	platform.Launch(g, desktop.NewRunner(NewWasmPrelaunch("Interact")))
+	platform.Launch(g, desktop.NewRunner(NewWasmPrelaunch("Interact"), desktop.NewDebugExtension(g)))
 }

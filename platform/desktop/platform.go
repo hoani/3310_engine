@@ -3,7 +3,6 @@
 package desktop
 
 import (
-	"bytes"
 	_ "embed"
 	"fmt"
 	"image"
@@ -15,15 +14,10 @@ import (
 	"time"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"github.com/hoani/3310_engine/engine"
 	"github.com/hoani/3310_engine/engine/command"
 	"github.com/hoani/3310_engine/platform/desktop/soundplayer"
-	"github.com/shirou/gopsutil/v4/process"
 )
-
-//go:embed Diary_of_an_8-bit_mage.otf
-var Debug_ttf []byte
 
 //go:embed shadowing.kage
 var Shadowing_kage []byte
@@ -60,12 +54,6 @@ type Shaders struct {
 	screen    *ebiten.Shader
 }
 
-type Debug struct {
-	fnt  *text.GoTextFaceSource
-	proc *process.Process
-	cpu  float64
-}
-
 type Platform struct {
 	game      engine.Game
 	shader    Shaders
@@ -74,7 +62,6 @@ type Platform struct {
 	shadowing *ebiten.Image
 	scale     float64
 	ratio     float64
-	debug     *Debug
 	lastDraw  time.Time
 	snd       *soundplayer.Player
 	keypad    *command.CommandImpl[engine.Key]
@@ -94,9 +81,6 @@ func (p *Platform) Update() error {
 	p.keypad.Update()
 	if err := p.game.Update(); err != nil {
 		return err
-	}
-	if p.debug != nil {
-		p.measureCpu()
 	}
 
 	return p.game.Draw(p.canvas) // This gets done here because we don't want to miss frames.
@@ -146,41 +130,6 @@ func (p *Platform) Draw(screen *ebiten.Image) {
 	screen.Fill(color.RGBA{0xce, 0xf9, 0xe0, 0xff})
 
 	screen.DrawRectShader(p.canvas.Width(), p.canvas.Height(), p.shader.screen, opts)
-
-	if p.debug != nil {
-		op := &text.DrawOptions{}
-		op.GeoM.Translate(float64(4.0), float64(4.0))
-		op.ColorScale.ScaleWithColor(color.Black)
-		op.PrimaryAlign = text.AlignStart
-		op.SecondaryAlign = text.AlignStart
-		op.LineSpacing = 12 * 0.8
-
-		statStr := fmt.Sprintf(
-			"FPS: %.1f\n\nTPS: %.1f",
-			ebiten.ActualFPS(),
-			ebiten.ActualTPS(),
-		)
-		if !math.IsNaN(p.debug.cpu) {
-			statStr += fmt.Sprintf(
-				"\n\nCPU: %.1f%%",
-				p.debug.cpu,
-			)
-		}
-
-		text.Draw(screen, statStr, &text.GoTextFace{
-			Source: p.debug.fnt,
-			Size:   12,
-		}, op)
-
-		miniX := float64(screen.Bounds().Dx()) - float64(p.canvas.Width())
-
-		miniOpt := &ebiten.DrawImageOptions{}
-		miniOpt.GeoM.Translate(miniX, 0.0)
-		screen.DrawImage(c, miniOpt)
-
-		miniOpt.GeoM.Translate(0.0, float64(p.canvas.Height()))
-		screen.DrawImage(p.shadowing, miniOpt)
-	}
 }
 
 func (p *Platform) computeDrawPort(screenWidth, screenHeight int) {
@@ -253,17 +202,6 @@ func Launch(game engine.Game, runner Runner) {
 
 	game.Setup(cmd, snd, p)
 
-	if game.Info().Debug {
-		proc, err := NewProcess()
-		HandleError(err)
-		fnt, err := text.NewGoTextFaceSource(bytes.NewReader(Debug_ttf))
-		HandleError(err)
-		p.debug = &Debug{
-			proc: proc,
-			fnt:  fnt,
-		}
-	}
-
 	p.shader.shadowing, err = ebiten.NewShader(Shadowing_kage)
 	HandleError(err)
 
@@ -275,7 +213,7 @@ func Launch(game engine.Game, runner Runner) {
 }
 
 func Run(game engine.Game) {
-	l := NewDefaultRunner()
+	r := NewDefaultRunner(game)
 
-	Launch(game, l)
+	Launch(game, r)
 }
