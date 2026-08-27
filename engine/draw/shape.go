@@ -45,6 +45,7 @@ type Gradient interface {
 }
 
 type ShapeDrawer interface {
+	Move(dx, dy int)
 	Fill(drawPixel drawPixel)
 	Outline(drawPixel drawPixel)
 }
@@ -176,6 +177,13 @@ func (b *RectangleBuilder) Outline(drawPixel drawPixel) {
 	line(drawPixel, Point{b.p0.X, b.p1.Y}, b.p1)
 }
 
+func (b *RectangleBuilder) Move(dx, dy int) {
+	b.p0.X += dx
+	b.p0.Y += dy
+	b.p1.X += dx
+	b.p1.Y += dy
+}
+
 func (sb *ShapeBuilder) Circle(center Point, diameter uint16) *ShapeBuilder {
 	b := &sb.circle
 	b.center = center
@@ -232,6 +240,11 @@ func (b *CircleBuilder) Fill(drawPixel drawPixel) {
 
 func (b *CircleBuilder) Outline(drawPixel drawPixel) {
 	b.draw(drawPixel, false)
+}
+
+func (b *CircleBuilder) Move(dx, dy int) {
+	b.center.X += dx
+	b.center.Y += dy
 }
 
 func (sb *ShapeBuilder) Oval(center Point, width, height uint16) *ShapeBuilder {
@@ -309,6 +322,11 @@ func (b *OvalBuilder) Outline(drawPixel drawPixel) {
 	b.draw(drawPixel, false)
 }
 
+func (b *OvalBuilder) Move(dx, dy int) {
+	b.center.X += dx
+	b.center.Y += dy
+}
+
 func (sb *ShapeBuilder) Triangle(p0, p1, p2 Point) *ShapeBuilder {
 	b := &sb.triangle
 	b.p0 = p0
@@ -329,6 +347,15 @@ func (b *TriangleBuilder) Outline(drawPixel drawPixel) {
 	line(drawPixel, b.p1, b.p2)
 }
 
+func (b *TriangleBuilder) Move(dx, dy int) {
+	b.p0.X += dx
+	b.p0.Y += dy
+	b.p1.X += dx
+	b.p1.Y += dy
+	b.p2.X += dx
+	b.p2.Y += dy
+}
+
 func (sb *ShapeBuilder) Line(p0, p1 Point) *ShapeBuilder {
 	b := &sb.line
 	b.p0 = p0
@@ -343,6 +370,13 @@ func (b *LineBuilder) Fill(drawPixel drawPixel) {
 
 func (b *LineBuilder) Outline(drawPixel drawPixel) {
 	line(drawPixel, b.p0, b.p1)
+}
+
+func (b *LineBuilder) Move(dx, dy int) {
+	b.p0.X += dx
+	b.p0.Y += dy
+	b.p1.X += dx
+	b.p1.Y += dy
 }
 
 func hLine(drawPixel drawPixel, x0, x1, y int) {

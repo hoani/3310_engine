@@ -22,7 +22,7 @@ func NewTriangleFan(center Point, points ...Point) ShapeDrawer {
 	}
 }
 
-func (s triangleStrip) Fill(drawPixel drawPixel) {
+func (s *triangleStrip) Fill(drawPixel drawPixel) {
 
 	for i := range s.points {
 		if (len(s.points) - i) < 3 {
@@ -33,7 +33,7 @@ func (s triangleStrip) Fill(drawPixel drawPixel) {
 	s.Outline(drawPixel)
 }
 
-func (s triangleStrip) Outline(drawPixel drawPixel) {
+func (s *triangleStrip) Outline(drawPixel drawPixel) {
 	n := len(s.points)
 	if n < 3 {
 		return
@@ -59,7 +59,14 @@ func (s triangleStrip) Outline(drawPixel drawPixel) {
 	}
 }
 
-func (s triangleFan) Fill(drawPixel drawPixel) {
+func (s *triangleStrip) Move(dx, dy int) {
+	for i := range s.points {
+		s.points[i].X += dx
+		s.points[i].Y += dy
+	}
+}
+
+func (s *triangleFan) Fill(drawPixel drawPixel) {
 	for i := range s.points {
 		if (len(s.points) - i) < 2 {
 			break
@@ -69,7 +76,7 @@ func (s triangleFan) Fill(drawPixel drawPixel) {
 	s.Outline(drawPixel)
 }
 
-func (s triangleFan) Outline(drawPixel drawPixel) {
+func (s *triangleFan) Outline(drawPixel drawPixel) {
 	n := len(s.points)
 	if n < 2 {
 		return
@@ -85,6 +92,13 @@ func (s triangleFan) Outline(drawPixel drawPixel) {
 			break
 		}
 		line(drawPixel, s.points[i], s.points[i+1])
+	}
+}
+
+func (s *triangleFan) Move(dx, dy int) {
+	for i := range s.points {
+		s.points[i].X += dx
+		s.points[i].Y += dy
 	}
 }
 
