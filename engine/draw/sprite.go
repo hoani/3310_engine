@@ -44,6 +44,17 @@ func NewSpriteOpts() *SpriteOpts {
 	return &SpriteOpts{Opts: *NewOpts(), HFlip: false, VFlip: false, Rotation: Rot0, Window: Window{}}
 }
 
+func (o *SpriteOpts) WithFlip(horizontal, vertical bool) *SpriteOpts {
+	o.HFlip = horizontal
+	o.VFlip = vertical
+	return o
+}
+
+func (o *SpriteOpts) WithRotation(r Rotation) *SpriteOpts {
+	o.Rotation = r
+	return o
+}
+
 func (o *SpriteOpts) WithInvert() *SpriteOpts {
 	o.Opts.WithInvert()
 	return o
