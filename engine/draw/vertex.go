@@ -96,6 +96,8 @@ func (s *triangleFan) Outline(drawPixel drawPixel) {
 }
 
 func (s *triangleFan) Move(dx, dy int) {
+	s.center.X += dx
+	s.center.Y += dy
 	for i := range s.points {
 		s.points[i].X += dx
 		s.points[i].Y += dy
