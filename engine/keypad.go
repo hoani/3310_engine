@@ -21,6 +21,14 @@ const (
 	KD
 )
 
+// Aliases, this is what these keys represent on the phone.
+const (
+	KCancel  Key = KA
+	KConfirm Key = KB
+	KPrev    Key = KC
+	KNext    Key = KD
+)
+
 const (
 	nameK1    = "1"
 	nameK2    = "2"

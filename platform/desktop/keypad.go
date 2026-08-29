@@ -34,10 +34,10 @@ func NewKeypad() *command.CommandImpl[engine.Key] {
 	cmd.Register(engine.KStar, KeyPressedFunc(ebiten.KeyZ, ebiten.KeyNumpad0))
 	cmd.Register(engine.K0, KeyPressedFunc(ebiten.KeyX, ebiten.KeyNumpadDecimal))
 	cmd.Register(engine.KHash, KeyPressedFunc(ebiten.KeyC, ebiten.KeyNumpadAdd))
-	cmd.Register(engine.KA, KeyPressedFunc(ebiten.KeyU))
-	cmd.Register(engine.KB, KeyPressedFunc(ebiten.KeyI))
-	cmd.Register(engine.KC, KeyPressedFunc(ebiten.KeyO))
-	cmd.Register(engine.KD, KeyPressedFunc(ebiten.KeyP))
+	cmd.Register(engine.KCancel, KeyPressedFunc(ebiten.KeyU, ebiten.KeyEscape))
+	cmd.Register(engine.KConfirm, KeyPressedFunc(ebiten.KeyI, ebiten.KeySpace))
+	cmd.Register(engine.KPrev, KeyPressedFunc(ebiten.KeyO, ebiten.KeyPeriod))
+	cmd.Register(engine.KNext, KeyPressedFunc(ebiten.KeyP, ebiten.KeyPeriod))
 
 	return cmd
 }
