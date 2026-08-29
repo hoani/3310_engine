@@ -171,10 +171,10 @@ func (b *RectangleBuilder) Fill(drawPixel drawPixel) {
 }
 
 func (b *RectangleBuilder) Outline(drawPixel drawPixel) {
-	line(drawPixel, b.p0, Point{b.p1.X, b.p0.Y})
-	line(drawPixel, Point{b.p1.X, b.p0.Y}, b.p1)
-	line(drawPixel, b.p0, Point{b.p0.X, b.p1.Y})
-	line(drawPixel, Point{b.p0.X, b.p1.Y}, b.p1)
+	line(drawPixel, b.p0, Point{b.p1.X - 1, b.p0.Y})
+	line(drawPixel, Point{b.p1.X - 1, b.p0.Y}, Point{b.p1.X - 1, b.p1.Y - 1})
+	line(drawPixel, b.p0, Point{b.p0.X, b.p1.Y - 1})
+	line(drawPixel, Point{b.p0.X, b.p1.Y - 1}, Point{b.p1.X - 1, b.p1.Y - 1})
 }
 
 func (b *RectangleBuilder) Move(dx, dy int) {

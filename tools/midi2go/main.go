@@ -57,7 +57,7 @@ func run(inDir, outDir string) error {
 		if err := convert(src, dst); err != nil {
 			return fmt.Errorf("%s: %w", e.Name(), err)
 		}
-		fmt.Printf("png2p5: %s -> %s\n", src, dst)
+		fmt.Printf("midi2go: %s -> %s\n", src, dst)
 		count++
 	}
 
