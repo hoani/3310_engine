@@ -89,7 +89,7 @@ func (o *SpriteOpts) WithAlign(align SpriteAlign) *SpriteOpts {
 }
 
 func (o *SpriteOpts) WithAlphaCustom(amount uint8, dither DitherFunc) *SpriteOpts {
-	o.WithAlphaCustom(amount, dither)
+	o.Opts.WithAlphaCustom(amount, dither)
 	return o
 }
 
