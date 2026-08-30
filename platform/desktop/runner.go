@@ -7,9 +7,11 @@ import (
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hoani/3310_engine/engine"
+	"github.com/hoani/3310_engine/engine/command"
 )
 
 type Runner interface {
+	Keypad() *command.CommandImpl[engine.Key]
 	Setup(p *Platform)
 	Run() error
 }
@@ -30,10 +32,23 @@ type runner struct {
 	prelaunch  PreLaunch
 	platform   *Platform
 	extensions []Extension
+	keypad     *command.CommandImpl[engine.Key]
 }
 
 func NewRunner(prelaunch PreLaunch, extensions ...Extension) *runner {
 	return &runner{prelaunch: prelaunch, extensions: extensions}
+}
+
+func (r *runner) WithKeypad(k *command.CommandImpl[engine.Key]) *runner {
+	r.keypad = k
+	return r
+}
+
+func (r *runner) Keypad() *command.CommandImpl[engine.Key] {
+	if r.keypad == nil {
+		r.keypad = NewKeypad()
+	}
+	return r.keypad
 }
 
 func (r *runner) Setup(p *Platform) {

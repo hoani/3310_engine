@@ -185,7 +185,7 @@ func HandleError(err error) {
 
 func Launch(game engine.Game, runner Runner) {
 
-	cmd := NewKeypad()
+	cmd := runner.Keypad()
 	snd, err := soundplayer.New()
 	HandleError(err)
 
