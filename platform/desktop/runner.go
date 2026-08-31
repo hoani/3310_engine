@@ -122,7 +122,7 @@ func NewDefaultPreLaunch(w, h int, name string) PreLaunch {
 }
 
 func (l *defaultPreLaunch) Setup() error {
-	ebiten.SetWindowSize(840, 480)
+	ebiten.SetWindowSize(l.w, l.h)
 	ebiten.SetWindowTitle(l.name)
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
 	ebiten.SetRunnableOnUnfocused(true)
