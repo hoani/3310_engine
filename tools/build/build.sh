@@ -13,8 +13,6 @@
 #
 set -euo pipefail
 
-WIDTH=640
-HEIGHT=480
 TITLE=""
 BASEDIR=""
 ARCHES=""
@@ -34,8 +32,6 @@ Options:
   -o DIR      base output directory (default: bin/<package path>)
   -a LIST     comma-separated GOARCH list for desktop targets
               (default: amd64,arm64)
-  -W N        iframe width in px, wasm only (default: 640)
-  -H N        iframe height in px, wasm only (default: 480)
   -t TEXT     page title, wasm only (default: package directory name)
   -n          skip building the .zip archives
   -x          attempt cgo cross-compiles that normally get skipped
@@ -54,8 +50,6 @@ while getopts ":o:a:W:H:t:nxgh" opt; do
 	case "$opt" in
 	o) BASEDIR="$OPTARG" ;;
 	a) ARCHES="$OPTARG" ;;
-	W) WIDTH="$OPTARG" ;;
-	H) HEIGHT="$OPTARG" ;;
 	t) TITLE="$OPTARG" ;;
 	n) DO_ZIP=0 ;;
 	x) ALLOW_CROSS=1 ;;
@@ -277,9 +271,26 @@ HTMLEOF
 <head>
 <meta charset="utf-8">
 <title>$TITLE</title>
+<style>
+    html, body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        width: 100%;
+        height: 100%;
+        background-color: #000; /* Keeps the background dark during transitions */
+    }
+    iframe {
+        width: 100%;
+        height: 100%;
+        border: none;
+        display: block;
+    }
+
+</style>
 </head>
 <body>
-<iframe src="main.html" allow="autoplay" width="$WIDTH" height="$HEIGHT" frameborder="0"></iframe>
+    <iframe src="main.html" allow="autoplay; fullscreen"></iframe>
 </body>
 </html>
 HTMLEOF

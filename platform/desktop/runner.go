@@ -126,7 +126,6 @@ func (l *defaultPreLaunch) Setup() error {
 	ebiten.SetWindowTitle(l.name)
 	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeEnabled)
 	ebiten.SetRunnableOnUnfocused(true)
-	ebiten.SetFullscreen(true)
 	return nil
 }
 
