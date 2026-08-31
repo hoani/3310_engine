@@ -10,8 +10,14 @@ import (
 	"github.com/hoani/3310_engine/engine/command"
 )
 
+type DisplayOpts struct {
+	// Value between [0,1) determines portion of margin vs screen.
+	Margin float64
+}
+
 type Runner interface {
 	Keypad() *command.CommandImpl[engine.Key]
+	DisplayOpts() *DisplayOpts
 	Setup(p *Platform)
 	Run() error
 }
@@ -29,10 +35,11 @@ type Extension interface {
 }
 
 type runner struct {
-	prelaunch  PreLaunch
-	platform   *Platform
-	extensions []Extension
-	keypad     *command.CommandImpl[engine.Key]
+	prelaunch   PreLaunch
+	platform    *Platform
+	extensions  []Extension
+	keypad      *command.CommandImpl[engine.Key]
+	displayOpts *DisplayOpts
 }
 
 func NewRunner(prelaunch PreLaunch, extensions ...Extension) *runner {
@@ -44,11 +51,25 @@ func (r *runner) WithKeypad(k *command.CommandImpl[engine.Key]) *runner {
 	return r
 }
 
+func (r *runner) WithDisplayOpts(displayOpts DisplayOpts) *runner {
+	r.displayOpts = &displayOpts
+	return r
+}
+
 func (r *runner) Keypad() *command.CommandImpl[engine.Key] {
 	if r.keypad == nil {
 		r.keypad = NewKeypad()
 	}
+
 	return r.keypad
+}
+
+func (r *runner) DisplayOpts() *DisplayOpts {
+	if r.displayOpts == nil {
+		r.displayOpts = DefaultDisplayOpts()
+	}
+
+	return r.displayOpts
 }
 
 func (r *runner) Setup(p *Platform) {
@@ -142,4 +163,10 @@ func (l *defaultPreLaunch) Draw(screen *ebiten.Image) {
 
 func (l *defaultPreLaunch) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeight int) {
 	return outsideWidth, outsideHeight
+}
+
+func DefaultDisplayOpts() *DisplayOpts {
+	return &DisplayOpts{
+		Margin: 0.125,
+	}
 }

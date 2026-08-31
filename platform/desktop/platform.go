@@ -55,19 +55,19 @@ type Shaders struct {
 }
 
 type Platform struct {
-	game      engine.Game
-	shader    Shaders
-	colors    GameColors
-	canvas    *canvas
-	shadowing *ebiten.Image
-	scale     float64
-	ratio     float64
-	lastDraw  time.Time
-	snd       *soundplayer.Player
-	keypad    *command.CommandImpl[engine.Key]
-	sw, sh    int
-	drawPort  *image.Rectangle
-	scaleBack int
+	game        engine.Game
+	shader      Shaders
+	colors      GameColors
+	canvas      *canvas
+	shadowing   *ebiten.Image
+	scale       float64
+	ratio       float64
+	lastDraw    time.Time
+	snd         *soundplayer.Player
+	keypad      *command.CommandImpl[engine.Key]
+	sw, sh      int
+	drawPort    *image.Rectangle
+	displayOpts *DisplayOpts
 }
 
 func (p *Platform) Console(format string, args ...any) {
@@ -161,7 +161,7 @@ func (p *Platform) Layout(outsideWidth, outsideHeight int) (screenWidth, screenH
 		next = math.Floor(float64(outsideHeight) / (p.ratio * 48.0))
 	}
 	if next > 6 {
-		next -= next / float64(p.scaleBack)
+		next -= next * p.displayOpts.Margin
 	}
 
 	if next != p.scale {
@@ -199,10 +199,10 @@ func Launch(game engine.Game, runner Runner) {
 		canvas:    NewCanvas(),
 		shadowing: ebiten.NewImage(84, 48),
 		scale:     10.0, ratio: 1.25,
-		lastDraw:  time.Now(),
-		snd:       snd,
-		keypad:    cmd,
-		scaleBack: 3,
+		lastDraw:    time.Now(),
+		snd:         snd,
+		keypad:      cmd,
+		displayOpts: runner.DisplayOpts(),
 	}
 
 	game.Setup(cmd, snd, p)
