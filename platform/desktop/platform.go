@@ -71,6 +71,9 @@ type Platform struct {
 }
 
 func (p *Platform) Console(format string, args ...any) {
+	if !p.game.Info().Debug {
+		return
+	}
 	fmt.Printf(format, args...)
 
 	if !strings.HasSuffix(format, "\n") {
