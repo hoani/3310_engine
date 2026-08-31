@@ -67,6 +67,7 @@ type Platform struct {
 	keypad    *command.CommandImpl[engine.Key]
 	sw, sh    int
 	drawPort  *image.Rectangle
+	scaleBack int
 }
 
 func (p *Platform) Console(format string, args ...any) {
@@ -157,7 +158,7 @@ func (p *Platform) Layout(outsideWidth, outsideHeight int) (screenWidth, screenH
 		next = math.Floor(float64(outsideHeight) / (p.ratio * 48.0))
 	}
 	if next > 6 {
-		next -= 1
+		next -= next / float64(p.scaleBack)
 	}
 
 	if next != p.scale {
@@ -195,9 +196,10 @@ func Launch(game engine.Game, runner Runner) {
 		canvas:    NewCanvas(),
 		shadowing: ebiten.NewImage(84, 48),
 		scale:     10.0, ratio: 1.25,
-		lastDraw: time.Now(),
-		snd:      snd,
-		keypad:   cmd,
+		lastDraw:  time.Now(),
+		snd:       snd,
+		keypad:    cmd,
+		scaleBack: 3,
 	}
 
 	game.Setup(cmd, snd, p)
