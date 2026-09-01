@@ -22,7 +22,7 @@ type Platform struct {
 	lcd    *pcd8544.Device
 	snd    *SoundPlayer
 	keypad *Keypad
-	cmd *command.CommandImpl[engine.Key]
+	cmd    *command.CommandImpl[engine.Key]
 }
 
 func New(game engine.Game, lcd *pcd8544.Device, led machine.Pin, snd *SoundPlayer, keypad *Keypad, cmd *command.CommandImpl[engine.Key]) *Platform {
@@ -33,7 +33,7 @@ func New(game engine.Game, lcd *pcd8544.Device, led machine.Pin, snd *SoundPlaye
 		lcd:    lcd,
 		snd:    snd,
 		keypad: keypad,
-		cmd: cmd,
+		cmd:    cmd,
 	}
 }
 
@@ -94,7 +94,7 @@ func (p *Platform) Run() error {
 			p.lcdLed.Set(info.Illuminated)
 			illuminated = info.Illuminated
 		}
-		
+
 		rem := period - time.Since(start)
 		time.Sleep(rem)
 	}
