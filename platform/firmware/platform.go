@@ -178,4 +178,9 @@ func Run(game engine.Game) {
 
 	err = p.Run()
 	handleErr("Game Crash", err)
+
+
+	for {
+		time.Sleep(time.Second)
+	}
 }

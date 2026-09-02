@@ -18,7 +18,6 @@ func init() {
 			ScePin: machine.P0_02,
 			LedPin: machine.P0_31,
 		},
-		// Note, we have PWM0 -> GPIO 0|1 or 16|17, PWM1 -> GPIO 2|3 or 18|19 and so on... up to PWM7
 		Buzzer: Buzzer{
 			Pwm: &PwmAdaptor{*machine.PWM0},
 			Pin: machine.P0_10,
