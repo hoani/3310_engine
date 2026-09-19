@@ -4,7 +4,7 @@ import (
 	"image/color"
 
 	"github.com/hoani/3310_engine/engine"
-	"github.com/hoani/3310_engine/font"
+	"tinygo.org/x/tinyfont"
 )
 
 var PixelOff = color.RGBA{0, 0, 0, 255}
@@ -48,7 +48,7 @@ type draw struct {
 func New(c engine.Canvas) Draw {
 	return &draw{
 		c:            c,
-		textBuilder:  NewTextBuilder(&FontCanvas{c: c, ink: false}, &font.Tiny),
+		textBuilder:  NewTextBuilder(&FontCanvas{c: c, ink: false}, &tinyfont.TomThumb),
 		shapeBuilder: NewShapeBuilder(c),
 	}
 }

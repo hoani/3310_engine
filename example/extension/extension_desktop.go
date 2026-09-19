@@ -33,10 +33,10 @@ func (e *frameExtension) Update() error {
 
 func (e *frameExtension) Draw(screen *ebiten.Image, port *image.Rectangle) {
 	x0, y0, x1, y1 := float64(port.Min.X), float64(port.Min.Y), float64(port.Max.X), float64(port.Max.Y)
-	ebitenutil.DrawLine(screen, x0, y0, x1, y0, color.RGBA{255, 0, 0, 0})
-	ebitenutil.DrawLine(screen, x0, y0, x0, y1, color.RGBA{255, 0, 0, 0})
-	ebitenutil.DrawLine(screen, x1, y0, x1, y1, color.RGBA{255, 0, 0, 0})
-	ebitenutil.DrawLine(screen, x0, y1, x1, y1, color.RGBA{255, 0, 0, 0})
+	ebitenutil.DrawLine(screen, x0, y0, x1, y0, color.RGBA{255, 0, 0, 255})
+	ebitenutil.DrawLine(screen, x0, y0, x0, y1, color.RGBA{255, 0, 0, 255})
+	ebitenutil.DrawLine(screen, x1, y0, x1, y1, color.RGBA{255, 0, 0, 255})
+	ebitenutil.DrawLine(screen, x0, y1, x1, y1, color.RGBA{255, 0, 0, 255})
 }
 
 func (e *countExtension) Setup() error {

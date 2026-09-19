@@ -7,7 +7,7 @@ import (
 	"github.com/hoani/3310_engine/engine/sound"
 	"github.com/hoani/3310_engine/engine/sound/note"
 	"github.com/hoani/3310_engine/engine/sprite"
-	"github.com/hoani/3310_engine/example/fonts/cink"
+	"github.com/hoani/3310_engine/example/assets/fonts/cink"
 	"github.com/hoani/3310_engine/example/sprite/sprites/pgm"
 )
 

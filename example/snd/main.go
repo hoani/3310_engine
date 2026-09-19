@@ -8,7 +8,7 @@ import (
 	"github.com/hoani/3310_engine/engine/draw"
 	"github.com/hoani/3310_engine/engine/sound"
 	"github.com/hoani/3310_engine/engine/sound/note"
-	"github.com/hoani/3310_engine/example/fonts/cink"
+	"github.com/hoani/3310_engine/example/assets/fonts/cink"
 	"github.com/hoani/3310_engine/example/snd/sound/music"
 	"github.com/hoani/3310_engine/platform"
 )
@@ -45,12 +45,14 @@ func (g *Game) Update() error {
 	}
 	if g.keypad.Pressed(engine.KC) {
 		g.index = (g.index + 1) % len(g.items)
+		g.snd.Stop()
 	}
 	if g.keypad.Pressed(engine.KD) {
 		g.index = (g.index - 1)
 		if g.index < 0 {
 			g.index += len(g.items)
 		}
+		g.snd.Stop()
 	}
 
 	return g.items[g.index].update()

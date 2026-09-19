@@ -4,22 +4,33 @@ import (
 	"github.com/hoani/3310_engine/engine"
 	"github.com/hoani/3310_engine/engine/command"
 	"github.com/hoani/3310_engine/engine/draw"
+	"github.com/hoani/3310_engine/engine/sound"
+	"github.com/hoani/3310_engine/engine/sound/note"
+	"github.com/hoani/3310_engine/example/assets/fonts/cink"
+	"github.com/hoani/3310_engine/example/assets/fonts/mwelch"
 	"github.com/hoani/3310_engine/platform"
 )
 
+type Item struct {
+	update func() error
+	draw   func(canvas engine.Canvas) error
+	name   string
+}
+
 type Game struct {
 	draw   draw.Draw
-	keypad command.Command[engine.Key]
+	snd    engine.SoundPlayer
 	debug  engine.Debug
-	ypos   int
-	xpos   int
-	col    bool
+	keypad command.Command[engine.Key]
 	info   *engine.GameInfo
+	index  int
+	items  []Item
 }
 
 func (g *Game) Setup(keypad command.Command[engine.Key], snd engine.SoundPlayer, debug engine.Debug) {
 	g.keypad = keypad
 	g.debug = debug
+	g.snd = snd
 }
 
 func (g *Game) Info() *engine.GameInfo {
@@ -27,39 +38,55 @@ func (g *Game) Info() *engine.GameInfo {
 }
 
 func (g *Game) Update() error {
-	if g.keypad.Pressed(engine.K2) {
-		g.ypos -= 4
+	if g.keypad.Pressed(engine.KB) {
+		g.info.Illuminated = !g.info.Illuminated
 	}
-	if g.keypad.Pressed(engine.K8) {
-		g.ypos += 4
-	}
-	if g.keypad.Pressed(engine.K4) {
-		g.xpos -= 4
-	}
-	if g.keypad.Pressed(engine.K6) {
-		g.xpos += 4
-	}
-	if g.keypad.Pressed(engine.K5) {
-		g.col = !g.col
-		g.debug.Console("Switched!")
-	}
-	return nil
+
+	return g.items[g.index].update()
 }
 
 func (g *Game) Draw(canvas engine.Canvas) error {
 	if g.draw == nil {
 		g.draw = draw.New(canvas)
 	}
-
 	canvas.Clear(false)
+	g.draw.Text(42, 1, g.items[g.index].name).HAlign(draw.FaCenter).Font(&mwelch.Tiny).Draw(true, nil)
 
-	g.draw.Text(48, 6, "Hello Tiny").Draw(true, draw.NewOpts())
+	return g.items[g.index].draw(canvas)
+}
 
-	g.draw.Text(g.xpos, g.ypos+32, "[0.0]").Draw(g.col, draw.NewOpts())
+func (g *Game) itemKeypad(name string) Item {
+	snds := make([]engine.Sound, 0, 16)
+	for i := range 16 {
+		snds = append(snds, sound.Sound(10, sound.Note(note.C3+note.Index(i), 0xFF, 8)))
+	}
 
-	return nil
+	text := ""
+	return Item{
+		name: name,
+		update: func() error {
+			for i := range 16 {
+				if g.keypad.Pressed(engine.Key(i)) {
+					g.snd.Play(snds[i])
+					text = engine.KeyName(engine.Key(i))
+				}
+			}
+
+			return nil
+		},
+		draw: func(canvas engine.Canvas) error {
+			g.draw.Text(42, 24, text).Font(&cink.Frogotype).HAlign(draw.FaCenter).VAlign(draw.FaMiddle).Draw(true, nil)
+			return nil
+		},
+	}
 }
 
 func main() {
-	platform.Run(&Game{info: &engine.GameInfo{Debug: true, Fps: 60}})
+	g := &Game{info: &engine.GameInfo{Debug: true, Fps: 60}}
+	g.items = append(
+		g.items,
+		g.itemKeypad("keypad"),
+	)
+
+	platform.Run(g)
 }

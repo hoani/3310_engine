@@ -5,8 +5,9 @@ import (
 	"github.com/hoani/3310_engine/engine/command"
 	"github.com/hoani/3310_engine/engine/draw"
 	"github.com/hoani/3310_engine/engine/text"
-	"github.com/hoani/3310_engine/example/fonts/cink"
-	"github.com/hoani/3310_engine/example/text/font"
+	"github.com/hoani/3310_engine/example/assets/fonts/cink"
+	"github.com/hoani/3310_engine/example/assets/fonts/mwelch"
+	"github.com/hoani/3310_engine/example/assets/fonts/somepx"
 	"github.com/hoani/3310_engine/platform"
 	"tinygo.org/x/tinyfont"
 	"tinygo.org/x/tinyfont/notosans"
@@ -60,7 +61,7 @@ func (g *Game) Draw(canvas engine.Canvas) error {
 		g.draw = draw.New(canvas)
 	}
 	canvas.Clear(false)
-	g.draw.Text(42, 1, g.items[g.index].name).HAlign(draw.FaCenter).Draw(true, nil)
+	g.draw.Text(42, 1, g.items[g.index].name).Font(&mwelch.Tiny).VAlign(draw.FaTop).HAlign(draw.FaCenter).Draw(true, nil)
 
 	return g.items[g.index].draw(canvas)
 }
@@ -77,7 +78,7 @@ func (g *Game) drawFont(f tinyfont.Fonter) func(canvas engine.Canvas) error {
 
 	index := 0
 
-	n := text.New(4, 8, 84-8, f, strings[index])
+	n := text.New(0, 8, 84, f, strings[index])
 
 	return func(canvas engine.Canvas) error {
 		n.Update(1, 0)
@@ -103,7 +104,7 @@ func main() {
 	g := &Game{info: &engine.GameInfo{Debug: true, Fps: 60}}
 	g.items = append(
 		g.items,
-		// Chequered Ink
+		// Chequered Ink - see https://chequered.ink/ for license details
 		Item{draw: g.drawFont(&cink.BittypixMonospace), name: "CI: BittypixMonospace"},
 		Item{draw: g.drawFont(&cink.CodersCrux), name: "CI: CodersCrux"},
 		Item{draw: g.drawFont(&cink.DiaryOfAn8bitMage), name: "CI: DiaryOfAn8BitMage"},
@@ -121,16 +122,15 @@ func main() {
 		Item{draw: g.drawFont(&cink.SuperLegendBoy), name: "CInk: Super Legend Boy"},
 		Item{draw: g.drawFont(&cink.TinyAndChunky), name: "CInk: Tiny And Chunky"},
 		Item{draw: g.drawFont(&cink.TeenyTinyPixls), name: "CInk: Teeny Tiny Pixls"},
-		// Nokia Jam fonts
-		Item{draw: g.drawFont(&font.EffortsPro), name: "EffortsPro"},
-		Item{draw: g.drawFont(&font.Tiny), name: "Tiny"},
+		// Nokia 3310 Jam fonts - see individual licesnses in examples/assets/fonts
+		Item{draw: g.drawFont(&somepx.EffortsPro), name: "EffortsPro"},
+		Item{draw: g.drawFont(&mwelch.Tiny), name: "Tiny"},
 		// Tiny font options - note licenses
 		Item{draw: g.drawFont(&notosans.Notosans12pt), name: "tinyfont: Notosans"},       //SIL Open Font License.
 		Item{draw: g.drawFont(&tinyfont.Org01), name: "tinyfont: Org01"},                 //BSD 3-Clause License.
 		Item{draw: g.drawFont(&tinyfont.Picopixel), name: "tinyfont: Picopixel"},         //BSD 3-Clause License.
 		Item{draw: g.drawFont(&tinyfont.Tiny3x3a2pt7b), name: "tinyfont: Tiny3x3a2pt7b"}, //Licensed under CC BY-NC-SA 3.0.
 		Item{draw: g.drawFont(&tinyfont.TomThumb), name: "tinyfont: TomThumb"},           //BSD 3-Clause License.
-
 	)
 
 	platform.Run(g)

@@ -38,8 +38,15 @@ func (g *Game) Info() *engine.GameInfo {
 func (g *Game) Update() error {
 	g.count++
 
-	if g.keypad.Pressed(engine.K8) {
+	if g.keypad.Pressed(engine.KC) {
 		g.index = (g.index + 1) % len(g.items)
+		g.count = 0
+	}
+	if g.keypad.Pressed(engine.KD) {
+		g.index = (g.index - 1)
+		if g.index < 0 {
+			g.index += len(g.items)
+		}
 		g.count = 0
 	}
 	return nil

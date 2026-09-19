@@ -1,6 +1,6 @@
-// tinyfnotgen-ttf -fontname EffortsPro -package font -output font/efforts_pro.go font/ttf/EffortsPro.ttf -dpi 96
+// tinyfnotgen-ttf -fontname EffortsPro -package somepx -output example/assets/fonts/somepx/efforts_pro.go example/assets/fonts/somepx/ttf/EffortsPro.ttf -yadvance 8 -dpi 96
 
-package font
+package somepx
 
 import (
 	"tinygo.org/x/tinyfont/const2bit"
@@ -9,7 +9,7 @@ import (
 var EffortsPro = const2bit.Font{
 	OffsetMap: mEffortsPro,
 	Data:      dEffortsPro,
-	YAdvance:  12,
+	YAdvance:  8,
 	Name:      "EffortsPro",
 }
 

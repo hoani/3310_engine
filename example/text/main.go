@@ -5,7 +5,8 @@ import (
 	"github.com/hoani/3310_engine/engine/command"
 	"github.com/hoani/3310_engine/engine/draw"
 	"github.com/hoani/3310_engine/engine/text"
-	"github.com/hoani/3310_engine/example/text/font"
+	"github.com/hoani/3310_engine/example/assets/fonts/mwelch"
+	"github.com/hoani/3310_engine/example/assets/fonts/somepx"
 	"github.com/hoani/3310_engine/platform"
 	"tinygo.org/x/tinyfont"
 )
@@ -38,8 +39,15 @@ func (g *Game) Info() *engine.GameInfo {
 func (g *Game) Update() error {
 	g.count++
 
-	if g.keypad.Pressed(engine.K8) {
+	if g.keypad.Pressed(engine.KC) {
 		g.index = (g.index + 1) % len(g.items)
+		g.count = 0
+	}
+	if g.keypad.Pressed(engine.KD) {
+		g.index = (g.index - 1)
+		if g.index < 0 {
+			g.index += len(g.items)
+		}
 		g.count = 0
 	}
 
@@ -62,17 +70,17 @@ func (g *Game) drawEffects(canvas engine.Canvas) error {
 		c = false
 	}
 
-	g.draw.Text(52, 18, "Hello\nWorld").Font(&font.EffortsPro).Draw(c, draw.NewOpts())
+	g.draw.Text(52, 18, "Hello\nWorld").Font(&somepx.EffortsPro).Draw(c, draw.NewOpts())
 	count := (4 * g.count) % 0x1FF
 	if count > 0xFF {
 		count = 0xFF
 	}
-	g.draw.Text(12, 18, "FADE").Font(&font.EffortsPro).Draw(c, draw.NewOpts().WithAlpha(uint8(count)))
-	g.draw.Text(12, 32, "APPEAR").Font(&font.EffortsPro).Draw(c, draw.NewOpts().WithAlpha(uint8(0xFF-count)))
+	g.draw.Text(12, 18, "FADE").Font(&somepx.EffortsPro).Draw(c, draw.NewOpts().WithAlpha(uint8(count)))
+	g.draw.Text(12, 32, "APPEAR").Font(&somepx.EffortsPro).Draw(c, draw.NewOpts().WithAlpha(uint8(0xFF-count)))
 
-	g.draw.Text(12, 8, "OUTLINE").Font(&font.EffortsPro).Draw(!c, draw.NewOpts().WithOutline(c))
+	g.draw.Text(12, 8, "OUTLINE").Font(&somepx.EffortsPro).Draw(!c, draw.NewOpts().WithOutline(c))
 
-	g.draw.Text(48, 32, "Hello Tiny").Draw(true, draw.NewOpts())
+	g.draw.Text(48, 36, "Hello Tiny").Font(&mwelch.Tiny).Draw(true, draw.NewOpts())
 
 	return nil
 }
@@ -107,7 +115,7 @@ func (g *Game) drawAlignment(f tinyfont.Fonter, opts *draw.Opts) func(canvas eng
 }
 
 func (g *Game) drawNarrate() func(canvas engine.Canvas) error {
-	f := &font.EffortsPro
+	f := &somepx.EffortsPro
 
 	strings := []string{
 		"I'll be your dream, I'll be your wish, I'll be your fantasy",
@@ -138,10 +146,10 @@ func main() {
 	g.items = append(
 		g.items,
 		Item{draw: g.drawEffects, name: "Effects"},
-		Item{draw: g.drawAlignment(&font.EffortsPro, draw.NewOpts()), name: "Align efforts"},
-		Item{draw: g.drawAlignment(&font.EffortsPro, draw.NewOpts().WithOutline(false).WithInvert()), name: "Align efforts outlined"},
-		Item{draw: g.drawAlignment(&font.Tiny, draw.NewOpts()), name: "Align tiny"},
-		Item{draw: g.drawAlignment(&font.Tiny, draw.NewOpts().WithOutline(false).WithInvert()), name: "Align tiny outlined"},
+		Item{draw: g.drawAlignment(&somepx.EffortsPro, draw.NewOpts()), name: "Align efforts"},
+		Item{draw: g.drawAlignment(&somepx.EffortsPro, draw.NewOpts().WithOutline(false).WithInvert()), name: "Align efforts outlined"},
+		Item{draw: g.drawAlignment(&mwelch.Tiny, draw.NewOpts()), name: "Align tiny"},
+		Item{draw: g.drawAlignment(&mwelch.Tiny, draw.NewOpts().WithOutline(false).WithInvert()), name: "Align tiny outlined"},
 		Item{draw: g.drawNarrate(), name: "Draw Narrate"},
 	)
 

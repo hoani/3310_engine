@@ -1,6 +1,6 @@
-// tinyfnotgen-ttf -fontname Tiny -package font -output font/tiny.go font/ttf/tiny.ttf -size 6 -dpi=72
+// tinyfnotgen-ttf -fontname Tiny -package mwelch -output example/assets/fonts/mwelch/tiny.go example/assets/fonts/mwelch/ttf/tiny.ttf -size 6 -yadvance 5 -dpi=72
 
-package font
+package mwelch
 
 import (
 	"tinygo.org/x/tinyfont/const2bit"
@@ -9,7 +9,7 @@ import (
 var Tiny = const2bit.Font{
 	OffsetMap: mTiny,
 	Data:      dTiny,
-	YAdvance:  6,
+	YAdvance:  5,
 	Name:      "Tiny",
 }
 

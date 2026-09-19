@@ -7,7 +7,8 @@ import (
 	"github.com/hoani/3310_engine/engine/sound"
 	"github.com/hoani/3310_engine/engine/sound/note"
 	"github.com/hoani/3310_engine/engine/sprite"
-	"github.com/hoani/3310_engine/example/fonts/cink"
+	"github.com/hoani/3310_engine/example/assets/fonts/cink"
+	"github.com/hoani/3310_engine/example/assets/fonts/mwelch"
 	"github.com/hoani/3310_engine/example/sprite/sprites/pgm"
 )
 
@@ -59,7 +60,7 @@ func (g *Game) Draw(canvas engine.Canvas) error {
 		g.draw = draw.New(canvas)
 	}
 	canvas.Clear(false)
-	g.draw.Text(42, 1, g.items[g.index].name).HAlign(draw.FaCenter).Draw(true, nil)
+	g.draw.Text(42, 1, g.items[g.index].name).HAlign(draw.FaCenter).Font(&mwelch.Tiny).Draw(true, nil)
 
 	return g.items[g.index].draw(canvas)
 }
