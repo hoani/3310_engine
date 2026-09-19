@@ -56,7 +56,7 @@ func (s *voice) Generate(dur time.Duration, amplitude uint8, w io.Writer) error 
 		saw := 2.0*phase - 1.0
 		saw -= polyBlep(phase, dt)
 
-		v := saw * 2.7 // Compensate filter attenuation.
+		v := saw * 2.5 // Compensate filter attenuation.
 		for _, f := range s.filters {
 			v = f.process(v)
 		}
@@ -76,29 +76,51 @@ func (s *voice) Generate(dur time.Duration, amplitude uint8, w io.Writer) error 
 	return nil
 }
 
+// I came across these parameters by feeding some sample tones into Claude and asking it synthesize the sound.
+// They seem pretty close to the real thing, but I've been unable to find any real documentation since
+// Nokia's buzzer was a custom component.
+// My understanding of the gains is as follows:
+// * 3440 Hz emulates the resonant frequency of the buzzer
+// * 5400 Hz emulatees the casing damping
 func newBuzzerFilters() []*biquad {
-	return []*biquad{newBandpass(3442, 1.63), newBandpass(5411, 9.75)}
+	return []*biquad{newBandpass(3440, 1.00), newBandpass(5400, 10.0)}
 }
 
+// Second-order IIR filter in Direct form I (https://en.wikipedia.org/wiki/Digital_biquad_filter)
 type biquad struct {
 	b0, b1, b2, a1, a2 float64
 	x1, x2, y1, y2     float64
 }
 
+// Create a new bandpass filter with center frequency fc and quality factor q.
 func newBandpass(fc, q float64) *biquad {
 	w0 := 2 * math.Pi * fc / sampleRate
-	al := math.Sin(w0) / (2 * q)
-	c := math.Cos(w0)
-	a0 := 1 + al
-	return &biquad{b0: al / a0, b1: 0, b2: -al / a0,
-		a1: -2 * c / a0, a2: (1 - al) / a0}
+	alpha := math.Sin(w0) / (2 * q)
+	cosw0 := math.Cos(w0)
+	a0 := 1 + alpha
+	// Uses BPF (constant 0 dB peak gain)
+	// See: https://webaudio.github.io/Audio-EQ-Cookbook/audio-eq-cookbook.html eq 20.
+	// Predivides by a0 to avoid additional divisions when using the filter.
+	return &biquad{
+		b0: alpha / a0,
+		b1: 0,
+		b2: -alpha / a0,
+		a1: -2 * cosw0 / a0,
+		a2: (1 - alpha) / a0,
+	}
 }
 
+// Apply IIR filter
 func (f *biquad) process(x float64) float64 {
 	y := f.b0*x + f.b1*f.x1 + f.b2*f.x2 - f.a1*f.y1 - f.a2*f.y2
+
+	// Shift states
 	f.x2, f.x1 = f.x1, x
 	f.y2, f.y1 = f.y1, y
 	return y
 }
 
-func (f *biquad) reset() { f.x1, f.x2, f.y1, f.y2 = 0, 0, 0, 0 }
+// Resets all states
+func (f *biquad) reset() {
+	f.x1, f.x2, f.y1, f.y2 = 0, 0, 0, 0
+}
