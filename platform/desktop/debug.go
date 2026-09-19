@@ -12,11 +12,11 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/text/v2"
 	"github.com/hoani/3310_engine/engine"
+	"github.com/hoani/3310_engine/platform/desktop/overlay"
 	"github.com/shirou/gopsutil/v4/process"
 )
 
-//go:embed Diary_of_an_8-bit_mage.otf
-var Debug_ttf []byte
+var Debug_ttf []byte = overlay.Font_ttf
 
 type debugExtension struct {
 	g    engine.Game
