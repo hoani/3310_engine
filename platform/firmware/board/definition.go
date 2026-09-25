@@ -7,6 +7,26 @@ import (
 	"machine"
 )
 
+var Board Definition
+
+func Set(input Definition) {
+	Board = input
+}
+
+func Get() (Definition, error) {
+	if Board == nil {
+		return nil, errors.New("Board not supported")
+	}
+	return Board, nil
+}
+
+type Definition interface {
+	Initialize()
+	Pcd() *Pcd
+	Buzzer() *Buzzer
+	Keypad() *Keypad
+}
+
 type Pcd struct {
 	Spi    *machine.SPI
 	SckPin machine.Pin
@@ -15,23 +35,18 @@ type Pcd struct {
 	DcPin  machine.Pin
 	RstPin machine.Pin
 	ScePin machine.Pin
-	LedPin machine.Pin
 }
 
-type Buzzer struct {
+type Pwm struct {
 	Pwm PwmGroup
 	Pin machine.Pin
 }
 
+type Buzzer Pwm
+
 type Keypad struct {
 	Col [4]machine.Pin
 	Row [4]machine.Pin
-}
-
-type Definition struct {
-	Pcd    Pcd
-	Buzzer Buzzer
-	Keypad Keypad
 }
 
 type PwmGroup interface {
@@ -41,17 +56,4 @@ type PwmGroup interface {
 	Set(channel uint8, value uint32)
 	Top() uint32
 	Channel(pin machine.Pin) (channel uint8, err error)
-}
-
-var Board *Definition
-
-func Set(input *Definition) {
-	Board = input
-}
-
-func Get() (*Definition, error) {
-	if Board == nil {
-		return nil, errors.New("Board not supported")
-	}
-	return Board, nil
 }

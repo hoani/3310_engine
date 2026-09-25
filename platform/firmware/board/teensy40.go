@@ -7,7 +7,7 @@ import (
 )
 
 func init() {
-	Set(&Definition{
+	Set(&Base{
 		Pcd: Pcd{
 			Spi:    machine.SPI0,
 			SckPin: machine.D13,
@@ -16,7 +16,6 @@ func init() {
 			DcPin:  machine.D14,
 			RstPin: machine.D15,
 			ScePin: machine.D10,
-			LedPin: machine.D16,
 		},
 		Buzzer: Buzzer{
 			Pwm: &PwmAdaptor{}, // Not actualy supported... oh dear.

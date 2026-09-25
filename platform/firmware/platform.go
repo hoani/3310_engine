@@ -16,24 +16,24 @@ import (
 )
 
 type Platform struct {
-	game   engine.Game
-	canvas *canvas
-	lcdLed machine.Pin
-	lcd    *pcd8544.Device
-	snd    *SoundPlayer
-	keypad *Keypad
-	cmd    *command.CommandImpl[engine.Key]
+	game       engine.Game
+	canvas     *canvas
+	lcd        *pcd8544.Device
+	snd        *SoundPlayer
+	keypad     *Keypad
+	cmd        *command.CommandImpl[engine.Key]
+	extensions []Extension
 }
 
-func New(game engine.Game, lcd *pcd8544.Device, led machine.Pin, snd *SoundPlayer, keypad *Keypad, cmd *command.CommandImpl[engine.Key]) *Platform {
+func New(game engine.Game, lcd *pcd8544.Device, snd *SoundPlayer, keypad *Keypad, cmd *command.CommandImpl[engine.Key], extensions ...Extension) *Platform {
 	return &Platform{
-		game:   game,
-		canvas: NewCanvas(lcd),
-		lcdLed: led,
-		lcd:    lcd,
-		snd:    snd,
-		keypad: keypad,
-		cmd:    cmd,
+		game:       game,
+		canvas:     NewCanvas(lcd),
+		lcd:        lcd,
+		snd:        snd,
+		keypad:     keypad,
+		cmd:        cmd,
+		extensions: extensions,
 	}
 }
 
@@ -57,10 +57,14 @@ func (p *Platform) Run() error {
 	memFloor := uint64(0)
 	memLast := uint64(0)
 	period := time.Second / time.Duration(p.game.Info().Fps)
-	illuminated := false
 	for {
 		count++
 		start := time.Now()
+		for _, extension := range p.extensions {
+			if err := extension.Update(); err != nil {
+				return err
+			}
+		}
 		p.keypad.Update()
 		p.cmd.Update()
 		if err := p.game.Update(); err != nil {
@@ -89,10 +93,6 @@ func (p *Platform) Run() error {
 				memFloor = m.Alloc
 			}
 			memLast = m.Alloc
-		}
-		if info.Illuminated != illuminated {
-			p.lcdLed.Set(info.Illuminated)
-			illuminated = info.Illuminated
 		}
 
 		rem := period - time.Since(start)
@@ -157,28 +157,31 @@ func handleErr(info string, err error) {
 	}
 }
 
-func Run(game engine.Game) {
+func Run(game engine.Game, extensions ...Extension) {
 
 	def, err := board.Get()
 	handleErr("Board def", err)
 
+	def.Initialize()
+
 	// Configure SPI with a 1 MHz frequency.
-	pcd := setupPcd(&def.Pcd)
+	pcd := setupPcd(def.Pcd())
 
-	def.Pcd.LedPin.Configure(machine.PinConfig{Mode: machine.PinOutput})
-
-	buzzer, err := setupBuzzer(&def.Buzzer, game.Info().Fps)
+	buzzer, err := setupBuzzer(def.Buzzer(), game.Info().Fps)
 	handleErr("Audio Setup", err)
 
-	keypad, cmd := NewKeypad(def.Keypad.Col, def.Keypad.Row)
+	keypad, cmd := NewKeypad(def.Keypad().Col, def.Keypad().Row)
 
-	p := New(game, pcd, def.Pcd.LedPin, buzzer, keypad, cmd)
+	p := New(game, pcd, buzzer, keypad, cmd, extensions...)
 
 	game.Setup(cmd, buzzer, p)
 
+	for i, extension := range extensions {
+		handleErr(fmt.Sprintf("Extension %d Setup", i), extension.Setup())
+	}
+
 	err = p.Run()
 	handleErr("Game Crash", err)
-
 
 	for {
 		time.Sleep(time.Second)

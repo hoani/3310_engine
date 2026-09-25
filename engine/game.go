@@ -7,9 +7,8 @@ type Debug interface {
 }
 
 type GameInfo struct {
-	Fps         int
-	Debug       bool
-	Illuminated bool
+	Fps   int
+	Debug bool
 }
 
 type Game interface {
