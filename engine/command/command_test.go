@@ -25,6 +25,7 @@ func TestCommandBasic(t *testing.T) {
 	require.False(c.Pressed(0))
 	require.False(c.Check(0))
 	require.False(c.Released(0))
+	require.False(c.CheckAny())
 
 	button.Active = true
 
@@ -32,6 +33,7 @@ func TestCommandBasic(t *testing.T) {
 	require.True(c.Pressed(0))
 	require.True(c.Check(0))
 	require.False(c.Released(0))
+	require.True(c.CheckAny())
 
 }
 

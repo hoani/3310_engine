@@ -47,9 +47,9 @@ func (c *CommandImpl[T]) Update() {
 		active := false
 		for _, check := range entry.checks {
 			active = active || check()
-			c.active = true
 		}
 		if active {
+			c.active = true
 			if !entry.active {
 				entry.pressed = true
 				c.pressed = true
