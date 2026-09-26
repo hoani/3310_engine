@@ -68,6 +68,7 @@ type Platform struct {
 	sw, sh      int
 	drawPort    *image.Rectangle
 	displayOpts *DisplayOpts
+	display     Display
 	config      engine.Config
 	debug       Debug
 }
@@ -76,8 +77,14 @@ type Debug struct {
 	p *Platform
 }
 
+type Display struct {
+	p       *Platform
+	enabled bool
+}
+
 func (p *Platform) Config(c engine.Config) {
 	p.config = c
+	ebiten.SetTPS(p.config.Fps)
 }
 
 func (p *Platform) Cmd() command.Command[engine.Key] {
@@ -108,6 +115,14 @@ func (d *Debug) Console(format string, args ...any) {
 	}
 }
 
+func (p *Platform) Display() engine.Display {
+	return &p.display
+}
+
+func (d *Display) Enable(e bool) {
+	d.enabled = e
+}
+
 func (p *Platform) Update() error {
 	p.keypad.Update()
 	if err := p.game.Update(); err != nil {
@@ -118,6 +133,11 @@ func (p *Platform) Update() error {
 }
 
 func (p *Platform) Draw(screen *ebiten.Image) {
+	screen.Fill(color.RGBA{0xce, 0xf9, 0xe0, 0xff})
+
+	if p.display.enabled == false {
+		return // All done
+	}
 
 	// Very pendantic, but ensures consistent shadowing with varying screen FPS.
 	dt := time.Since(p.lastDraw).Seconds()
@@ -157,8 +177,6 @@ func (p *Platform) Draw(screen *ebiten.Image) {
 	opts.GeoM.Scale(p.scale, p.scale*p.ratio)
 
 	opts.GeoM.Translate(xOffset, yOffset)
-
-	screen.Fill(color.RGBA{0xce, 0xf9, 0xe0, 0xff})
 
 	screen.DrawRectShader(p.canvas.Width(), p.canvas.Height(), p.shader.screen, opts)
 }
@@ -230,6 +248,7 @@ func Launch(game engine.Game, runner Runner) {
 		snd:         snd,
 		keypad:      cmd,
 		displayOpts: runner.DisplayOpts(),
+		display:     Display{enabled: true},
 	}
 
 	p.debug = Debug{p: p}

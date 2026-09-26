@@ -11,17 +11,12 @@ type Display interface {
 	Enable(bool)
 }
 
-type Runtime interface {
-	SetFps(int)
-}
-
 type Platform interface {
 	Config(Config)
 	Cmd() command.Command[Key]
 	Snd() SoundPlayer
 	Debug() Debug
-	// Display() Display
-	// Runtime() Runtime
+	Display() Display
 }
 
 type Config struct {

@@ -3,8 +3,6 @@
 package main
 
 import (
-	"fmt"
-
 	"github.com/hoani/3310_engine/platform"
 	"github.com/hoani/3310_engine/platform/firmware/board"
 )
@@ -14,7 +12,6 @@ type hal struct {
 }
 
 func (h *hal) VoltageMv() uint16 {
-	fmt.Println("sampling voltage")
 	return uint16(2 * (uint32(h.Board.Battery.Get()) * 3300) / 65536)
 }
 

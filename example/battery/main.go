@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/hoani/3310_engine/engine"
 	"github.com/hoani/3310_engine/engine/command"
@@ -37,6 +36,7 @@ type Game struct {
 
 func (g *Game) Setup(p engine.Platform) {
 	p.Config(*g.config)
+	g.platform = p
 	g.keypad = p.Cmd()
 	g.debug = p.Debug()
 	g.snd = p.Snd()
@@ -104,6 +104,9 @@ func (g *Game) itemBattery() Item {
 				if g.keypad.Pressed(engine.Key(i)) {
 					g.snd.Play(snds[i])
 					timeout = 0
+					g.platform.Display().Enable(true)
+					g.config.Fps = 60
+					g.platform.Config(*g.config)
 					hue := uint32(0xFF) << i
 					g.Hal.Backlight(uint8(hue>>16), uint8(hue>>8), uint8(hue), true)
 				}
@@ -126,7 +129,12 @@ func (g *Game) itemBattery() Item {
 			}
 
 			if timeout > sleep {
-				time.Sleep(time.Millisecond * 500)
+				// Go into a deep sleep, only updating step twice a second to check for button presses
+				if g.config.Fps != 2 {
+					g.config.Fps = 2
+					g.platform.Config(*g.config)
+					g.platform.Display().Enable(false)
+				}
 			}
 
 			return nil
@@ -134,20 +142,10 @@ func (g *Game) itemBattery() Item {
 		draw: func(canvas engine.Canvas) error {
 			canvas.Clear(false)
 
-			doDraw := true
+			g.draw.Text(42, 1, g.items[g.index].name).HAlign(draw.FaCenter).Draw(true, nil)
 
-			if timeout > sleep {
-				if (timeout % 20) != 0 {
-					doDraw = false
-				}
-			}
-
-			if doDraw {
-				g.draw.Text(42, 1, g.items[g.index].name).HAlign(draw.FaCenter).Draw(true, nil)
-
-				g.draw.Text(42, 12, fmt.Sprintf("%d mV", batteryMv)).Font(&cink.Frogotype).HAlign(draw.FaCenter).VAlign(draw.FaMiddle).Draw(true, nil)
-				g.draw.Text(42, 32, fmt.Sprintf("%.1f %%", percent)).Font(&cink.Frogotype).HAlign(draw.FaCenter).VAlign(draw.FaMiddle).Draw(true, nil)
-			}
+			g.draw.Text(42, 12, fmt.Sprintf("%d mV", batteryMv)).Font(&cink.Frogotype).HAlign(draw.FaCenter).VAlign(draw.FaMiddle).Draw(true, nil)
+			g.draw.Text(42, 32, fmt.Sprintf("%.1f %%", percent)).Font(&cink.Frogotype).HAlign(draw.FaCenter).VAlign(draw.FaMiddle).Draw(true, nil)
 
 			return nil
 		},
