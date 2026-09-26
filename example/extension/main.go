@@ -38,9 +38,6 @@ func (g *Game) Info() *engine.GameInfo {
 }
 
 func (g *Game) Update() error {
-	if g.keypad.Pressed(engine.KB) {
-		g.info.Illuminated = !g.info.Illuminated
-	}
 	if g.keypad.Pressed(engine.KC) {
 		g.index = (g.index + 1) % len(g.items)
 	}

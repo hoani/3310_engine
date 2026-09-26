@@ -162,8 +162,6 @@ func Run(game engine.Game, extensions ...Extension) {
 	def, err := board.Get()
 	handleErr("Board def", err)
 
-	def.Initialize()
-
 	// Configure SPI with a 1 MHz frequency.
 	pcd := setupPcd(def.Pcd())
 
@@ -171,6 +169,8 @@ func Run(game engine.Game, extensions ...Extension) {
 	handleErr("Audio Setup", err)
 
 	keypad, cmd := NewKeypad(def.Keypad().Col, def.Keypad().Row)
+
+	def.Initialize()
 
 	p := New(game, pcd, buzzer, keypad, cmd, extensions...)
 

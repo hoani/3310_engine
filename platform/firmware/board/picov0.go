@@ -9,6 +9,7 @@ type PicoV0 struct {
 	Backlight machine.Pin
 }
 
+// Based on https://github.com/hoani/3310_pico/releases/tag/v0
 func V0() *PicoV0 {
 	def := &PicoV0{
 		Base:      *DefaultDefinition(),
