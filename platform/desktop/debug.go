@@ -20,6 +20,7 @@ var Debug_ttf []byte = overlay.Font_ttf
 
 type debugExtension struct {
 	g    engine.Game
+	p    engine.Platform
 	fnt  *text.GoTextFaceSource
 	proc *process.Process
 	cpu  float64
@@ -31,17 +32,18 @@ func NewDebugExtension(g engine.Game) Extension {
 	}
 }
 
-func (e *debugExtension) Setup() error {
+func (e *debugExtension) Setup(p engine.Platform) error {
 	proc, err := NewProcess()
 	if err != nil {
 		return err
 	}
+	e.p = p
 	e.proc = proc
 	e.fnt, err = text.NewGoTextFaceSource(bytes.NewReader(Debug_ttf))
 	return err
 }
 func (e *debugExtension) Update() error {
-	if !e.g.Info().Debug {
+	if !e.p.Debug().Enabled() {
 		return nil
 	}
 	e.measureCpu()
@@ -49,7 +51,7 @@ func (e *debugExtension) Update() error {
 }
 
 func (e *debugExtension) Draw(screen *ebiten.Image, port *image.Rectangle) {
-	if !e.g.Info().Debug {
+	if !e.p.Debug().Enabled() {
 		return
 	}
 

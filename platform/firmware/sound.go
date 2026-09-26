@@ -29,17 +29,24 @@ type SoundPlayer struct {
 	durPerFrame time.Duration
 }
 
-func NewSoundPlayer(pwm board.PwmGroup, ch uint8, fps int) *SoundPlayer {
+func NewSoundPlayer(pwm board.PwmGroup, ch uint8) *SoundPlayer {
 	p := &SoundPlayer{
 		active:      engine.NoneNote(0),
 		sfx:         Sound{sound: nil, frame: 0, loop: false},
 		track:       Sound{sound: nil, frame: 0, loop: false},
 		pwm:         pwm,
 		ch:          ch,
-		durPerFrame: time.Second / time.Duration(fps),
+		durPerFrame: time.Second / time.Duration(60),
 	}
 	p.pwm.Enable(true)
 	return p
+}
+
+func (p *SoundPlayer) SetFps(fps int) {
+	if fps == 0 {
+		return
+	}
+	p.durPerFrame = time.Second / time.Duration(fps)
 }
 
 func (p *SoundPlayer) Update() {

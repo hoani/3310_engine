@@ -21,18 +21,15 @@ type Game struct {
 	keypad command.Command[engine.Key]
 	debug  engine.Debug
 	sphere engine.Sprite
-	info   *engine.GameInfo
+	config *engine.Config
 	index  int
 	items  []Item
 }
 
 func (g *Game) Setup(p engine.Platform) {
+	p.Config(*g.config)
 	g.keypad = p.Cmd()
 	g.debug = p.Debug()
-}
-
-func (g *Game) Info() *engine.GameInfo {
-	return g.info
 }
 
 func (g *Game) Update() error {
@@ -108,7 +105,7 @@ func main() {
 	}
 	g := &Game{
 		sphere: sphere,
-		info:   &engine.GameInfo{Debug: true, Fps: 60},
+		config: &engine.Config{Debug: true, Fps: 60},
 	}
 	g.items = append(
 		g.items,

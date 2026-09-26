@@ -18,19 +18,16 @@ type Item struct {
 type Game struct {
 	draw   draw.Draw
 	debug  engine.Debug
-	info   *engine.GameInfo
+	config *engine.Config
 	keypad command.Command[engine.Key]
 	index  int
 	items  []Item
 }
 
 func (g *Game) Setup(p engine.Platform) {
+	p.Config(*g.config)
 	g.keypad = p.Cmd()
 	g.debug = p.Debug()
-}
-
-func (g *Game) Info() *engine.GameInfo {
-	return g.info
 }
 
 func (g *Game) Update() error {
@@ -92,7 +89,7 @@ func (g *Game) itemOverlay(name string, o Overlay) Item {
 
 func main() {
 
-	g := &Game{info: &engine.GameInfo{Debug: true, Fps: 60}}
+	g := &Game{config: &engine.Config{Debug: true, Fps: 60}}
 
 	g.items = append(
 		g.items,

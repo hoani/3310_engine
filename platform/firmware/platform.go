@@ -17,16 +17,22 @@ import (
 
 type Platform struct {
 	game       engine.Game
+	config     engine.Config
 	canvas     *canvas
 	lcd        *pcd8544.Device
 	snd        *SoundPlayer
 	keypad     *Keypad
 	cmd        *command.CommandImpl[engine.Key]
 	extensions []Extension
+	debug      Debug
+}
+
+type Debug struct {
+	p *Platform
 }
 
 func New(game engine.Game, lcd *pcd8544.Device, snd *SoundPlayer, keypad *Keypad, cmd *command.CommandImpl[engine.Key], extensions ...Extension) *Platform {
-	return &Platform{
+	p := &Platform{
 		game:       game,
 		canvas:     NewCanvas(lcd),
 		lcd:        lcd,
@@ -35,6 +41,13 @@ func New(game engine.Game, lcd *pcd8544.Device, snd *SoundPlayer, keypad *Keypad
 		cmd:        cmd,
 		extensions: extensions,
 	}
+	p.debug = Debug{p: p}
+	return p
+}
+
+func (p *Platform) Config(c engine.Config) {
+	p.config = c
+	p.snd.SetFps(p.config.Fps)
 }
 
 func (p *Platform) Cmd() command.Command[engine.Key] {
@@ -46,10 +59,14 @@ func (p *Platform) Snd() engine.SoundPlayer {
 }
 
 func (p *Platform) Debug() engine.Debug {
-	return p
+	return &p.debug
 }
 
-func (p *Platform) Console(format string, args ...any) {
+func (d *Debug) Enabled() bool {
+	return d.p.config.Debug
+}
+
+func (d *Debug) Console(format string, args ...any) {
 	if len(args) == 0 {
 		fmt.Printf(format)
 	} else {
@@ -59,16 +76,14 @@ func (p *Platform) Console(format string, args ...any) {
 	if !strings.HasSuffix(format, "\n") {
 		fmt.Printf("\n")
 	}
-
 }
 
 func (p *Platform) Run() error {
 	var m runtime.MemStats
 	count := 0
-	info := p.game.Info()
 	memFloor := uint64(0)
 	memLast := uint64(0)
-	period := time.Second / time.Duration(p.game.Info().Fps)
+	period := time.Second / time.Duration(p.config.Fps)
 	for {
 		count++
 		start := time.Now()
@@ -92,7 +107,7 @@ func (p *Platform) Run() error {
 		if err := p.Draw(); err != nil {
 			return err
 		}
-		if info.Debug {
+		if p.config.Debug {
 			if (count % (5 * 60)) == 0 {
 				dDur := lcdStart.Sub(dStart)
 				lcdDur := time.Since(lcdStart)
@@ -146,7 +161,7 @@ func setupPcd(def *board.Pcd) *pcd8544.Device {
 	return d
 }
 
-func setupBuzzer(def *board.Buzzer, fps int) (*SoundPlayer, error) {
+func setupBuzzer(def *board.Buzzer) (*SoundPlayer, error) {
 	def.Pwm.Configure(machine.PWMConfig{
 		Period: 50 * 1e6,
 	})
@@ -156,7 +171,7 @@ func setupBuzzer(def *board.Buzzer, fps int) (*SoundPlayer, error) {
 	}
 	def.Pwm.Enable(false)
 
-	return NewSoundPlayer(def.Pwm, ch, fps), nil
+	return NewSoundPlayer(def.Pwm, ch), nil
 }
 
 func handleErr(info string, err error) {
@@ -177,7 +192,7 @@ func Run(game engine.Game, extensions ...Extension) {
 	// Configure SPI with a 1 MHz frequency.
 	pcd := setupPcd(def.Pcd())
 
-	buzzer, err := setupBuzzer(def.Buzzer(), game.Info().Fps)
+	buzzer, err := setupBuzzer(def.Buzzer())
 	handleErr("Audio Setup", err)
 
 	keypad, cmd := NewKeypad(def.Keypad().Col, def.Keypad().Row)

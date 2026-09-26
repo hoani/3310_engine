@@ -68,6 +68,16 @@ type Platform struct {
 	sw, sh      int
 	drawPort    *image.Rectangle
 	displayOpts *DisplayOpts
+	config      engine.Config
+	debug       Debug
+}
+
+type Debug struct {
+	p *Platform
+}
+
+func (p *Platform) Config(c engine.Config) {
+	p.config = c
 }
 
 func (p *Platform) Cmd() command.Command[engine.Key] {
@@ -79,14 +89,19 @@ func (p *Platform) Snd() engine.SoundPlayer {
 }
 
 func (p *Platform) Debug() engine.Debug {
-	return p
+	return &p.debug
 }
 
-func (p *Platform) Console(format string, args ...any) {
-	if !p.game.Info().Debug {
-		return
+func (d *Debug) Enabled() bool {
+	return d.p.config.Debug
+}
+
+func (d *Debug) Console(format string, args ...any) {
+	if len(args) == 0 {
+		fmt.Printf(format)
+	} else {
+		fmt.Printf(format, args)
 	}
-	fmt.Printf(format, args...)
 
 	if !strings.HasSuffix(format, "\n") {
 		fmt.Printf("\n")
@@ -178,7 +193,7 @@ func (p *Platform) Layout(outsideWidth, outsideHeight int) (screenWidth, screenH
 
 	if next != p.scale {
 
-		if p.game.Info().Debug {
+		if p.config.Debug {
 			fmt.Printf("%d set scale %f\n", time.Now().Second(), p.scale)
 		}
 		p.scale = next // math.Floor(float64(outsideHeight) / (p.ratio * 48.0))
@@ -216,6 +231,8 @@ func Launch(game engine.Game, runner Runner) {
 		keypad:      cmd,
 		displayOpts: runner.DisplayOpts(),
 	}
+
+	p.debug = Debug{p: p}
 
 	game.Setup(p)
 

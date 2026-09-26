@@ -29,7 +29,7 @@ type PreLaunch interface {
 }
 
 type Extension interface {
-	Setup() error
+	Setup(p engine.Platform) error
 	Update() error
 	Draw(screen *ebiten.Image, port *image.Rectangle)
 }
@@ -82,7 +82,7 @@ func (r *runner) Run() error {
 	}
 
 	for _, extension := range r.extensions {
-		if err := extension.Setup(); err != nil {
+		if err := extension.Setup(r.platform); err != nil {
 			return err
 		}
 	}

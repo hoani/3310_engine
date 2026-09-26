@@ -24,24 +24,22 @@ type Item struct {
 }
 
 type Game struct {
-	draw   draw.Draw
-	snd    engine.SoundPlayer
-	debug  engine.Debug
-	keypad command.Command[engine.Key]
-	info   *engine.GameInfo
-	index  int
-	items  []Item
-	Hal    Hal
+	draw     draw.Draw
+	snd      engine.SoundPlayer
+	debug    engine.Debug
+	keypad   command.Command[engine.Key]
+	config   *engine.Config
+	platform engine.Platform
+	index    int
+	items    []Item
+	Hal      Hal
 }
 
 func (g *Game) Setup(p engine.Platform) {
+	p.Config(*g.config)
 	g.keypad = p.Cmd()
 	g.debug = p.Debug()
 	g.snd = p.Snd()
-}
-
-func (g *Game) Info() *engine.GameInfo {
-	return g.info
 }
 
 func (g *Game) Update() error {
@@ -157,7 +155,7 @@ func (g *Game) itemBattery() Item {
 }
 
 func main() {
-	g := &Game{info: &engine.GameInfo{Debug: true, Fps: 60}}
+	g := &Game{config: &engine.Config{Debug: true, Fps: 60}}
 	g.items = append(
 		g.items,
 		g.itemBattery(),

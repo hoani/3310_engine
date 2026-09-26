@@ -22,18 +22,15 @@ type Game struct {
 	keypad command.Command[engine.Key]
 	debug  engine.Debug
 	sphere engine.Sprite
-	info   *engine.GameInfo
+	config *engine.Config
 	index  int
 	items  []Item
 }
 
 func (g *Game) Setup(p engine.Platform) {
+	p.Config(*g.config)
 	g.keypad = p.Cmd()
 	g.debug = p.Debug()
-}
-
-func (g *Game) Info() *engine.GameInfo {
-	return g.info
 }
 
 func (g *Game) Update() error {
@@ -67,7 +64,7 @@ func (g *Game) drawTriangle(canvas engine.Canvas) error {
 	{
 		count := g.count / 128 * 128
 
-		alpha := math.Pi * float64(count) / float64(10*g.Info().Fps)
+		alpha := math.Pi * float64(count) / float64(10*g.config.Fps)
 		s0a := math.Sin(alpha)
 		c0a := math.Cos(alpha)
 
@@ -163,7 +160,7 @@ func (g *Game) drawLine(canvas engine.Canvas) error {
 	for i := 20; i < 600; i += 300 {
 		count := i + g.count
 
-		alpha := math.Pi * float64(count) / float64(10*g.Info().Fps)
+		alpha := math.Pi * float64(count) / float64(10*g.config.Fps)
 		s0a := math.Sin(alpha)
 		c0a := math.Cos(alpha)
 
@@ -281,7 +278,7 @@ func main() {
 	}
 	g := &Game{
 		sphere: sphere,
-		info:   &engine.GameInfo{Debug: true, Fps: 60},
+		config: &engine.Config{Debug: true, Fps: 60},
 	}
 	g.items = append(
 		g.items,

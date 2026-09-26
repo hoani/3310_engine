@@ -24,18 +24,15 @@ type Game struct {
 	debug  engine.Debug
 	col    bool
 	keypad command.Command[engine.Key]
-	info   *engine.GameInfo
+	config engine.Config
 	index  int
 	items  []Item
 }
 
 func (g *Game) Setup(p engine.Platform) {
+	p.Config(g.config)
 	g.keypad = p.Cmd()
 	g.debug = p.Debug()
-}
-
-func (g *Game) Info() *engine.GameInfo {
-	return g.info
 }
 
 func (g *Game) Update() error {
@@ -101,7 +98,7 @@ func (g *Game) drawFont(f tinyfont.Fonter) func(canvas engine.Canvas) error {
 }
 
 func main() {
-	g := &Game{info: &engine.GameInfo{Debug: true, Fps: 60}}
+	g := &Game{config: engine.Config{Debug: true, Fps: 60}}
 	g.items = append(
 		g.items,
 		// Chequered Ink - see https://chequered.ink/ for license details

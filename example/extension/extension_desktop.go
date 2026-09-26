@@ -21,7 +21,7 @@ type countExtension struct {
 	fnt   *text.GoTextFaceSource
 }
 
-func (e *frameExtension) Setup() error {
+func (e *frameExtension) Setup(p *Platform) error {
 
 	return nil
 }
@@ -39,7 +39,7 @@ func (e *frameExtension) Draw(screen *ebiten.Image, port *image.Rectangle) {
 	ebitenutil.DrawLine(screen, x0, y1, x1, y1, color.RGBA{255, 0, 0, 255})
 }
 
-func (e *countExtension) Setup() error {
+func (e *countExtension) Setup(p *Platform) error {
 	fnt, err := text.NewGoTextFaceSource(bytes.NewReader(desktop.Debug_ttf))
 	if err != nil {
 		return err
