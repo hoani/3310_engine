@@ -37,6 +37,18 @@ func New(game engine.Game, lcd *pcd8544.Device, snd *SoundPlayer, keypad *Keypad
 	}
 }
 
+func (p *Platform) Cmd() command.Command[engine.Key] {
+	return p.cmd
+}
+
+func (p *Platform) Snd() engine.SoundPlayer {
+	return p.snd
+}
+
+func (p *Platform) Debug() engine.Debug {
+	return p
+}
+
 func (p *Platform) Console(format string, args ...any) {
 	if len(args) == 0 {
 		fmt.Printf(format)
@@ -174,7 +186,7 @@ func Run(game engine.Game, extensions ...Extension) {
 
 	p := New(game, pcd, buzzer, keypad, cmd, extensions...)
 
-	game.Setup(cmd, buzzer, p)
+	game.Setup(p)
 
 	for i, extension := range extensions {
 		handleErr(fmt.Sprintf("Extension %d Setup", i), extension.Setup())

@@ -70,6 +70,18 @@ type Platform struct {
 	displayOpts *DisplayOpts
 }
 
+func (p *Platform) Cmd() command.Command[engine.Key] {
+	return p.keypad
+}
+
+func (p *Platform) Snd() engine.SoundPlayer {
+	return p.snd
+}
+
+func (p *Platform) Debug() engine.Debug {
+	return p
+}
+
 func (p *Platform) Console(format string, args ...any) {
 	if !p.game.Info().Debug {
 		return
@@ -205,7 +217,7 @@ func Launch(game engine.Game, runner Runner) {
 		displayOpts: runner.DisplayOpts(),
 	}
 
-	game.Setup(cmd, snd, p)
+	game.Setup(p)
 
 	p.shader.shadowing, err = ebiten.NewShader(Shadowing_kage)
 	HandleError(err)

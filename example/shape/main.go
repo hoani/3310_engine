@@ -27,9 +27,9 @@ type Game struct {
 	items  []Item
 }
 
-func (g *Game) Setup(keypad command.Command[engine.Key], snd engine.SoundPlayer, debug engine.Debug) {
-	g.keypad = keypad
-	g.debug = debug
+func (g *Game) Setup(p engine.Platform) {
+	g.keypad = p.Cmd()
+	g.debug = p.Debug()
 }
 
 func (g *Game) Info() *engine.GameInfo {

@@ -28,10 +28,10 @@ type Game struct {
 	items  []Item
 }
 
-func (g *Game) Setup(keypad command.Command[engine.Key], snd engine.SoundPlayer, debug engine.Debug) {
-	g.keypad = keypad
-	g.debug = debug
-	g.snd = snd
+func (g *Game) Setup(p engine.Platform) {
+	g.keypad = p.Cmd()
+	g.debug = p.Debug()
+	g.snd = p.Snd()
 }
 
 func (g *Game) Info() *engine.GameInfo {
@@ -39,9 +39,6 @@ func (g *Game) Info() *engine.GameInfo {
 }
 
 func (g *Game) Update() error {
-	if g.keypad.Pressed(engine.KB) {
-		g.info.Illuminated = !g.info.Illuminated
-	}
 	if g.keypad.Pressed(engine.KC) {
 		g.index = (g.index + 1) % len(g.items)
 	}

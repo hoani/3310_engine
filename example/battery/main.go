@@ -34,10 +34,10 @@ type Game struct {
 	Hal    Hal
 }
 
-func (g *Game) Setup(keypad command.Command[engine.Key], snd engine.SoundPlayer, debug engine.Debug) {
-	g.keypad = keypad
-	g.debug = debug
-	g.snd = snd
+func (g *Game) Setup(p engine.Platform) {
+	g.keypad = p.Cmd()
+	g.debug = p.Debug()
+	g.snd = p.Snd()
 }
 
 func (g *Game) Info() *engine.GameInfo {
@@ -62,7 +62,6 @@ func (g *Game) Draw(canvas engine.Canvas) error {
 	if g.draw == nil {
 		g.draw = draw.New(canvas)
 	}
-	
 
 	return g.items[g.index].draw(canvas)
 }
@@ -93,8 +92,8 @@ func (g *Game) itemBattery() Item {
 		snds = append(snds, sound.Sound(10, sound.Note(note.C3+note.Index(i), 0xFF, 8)))
 	}
 
-	lightOff := 5*50
-	sleep := 20*60
+	lightOff := 5 * 50
+	sleep := 20 * 60
 
 	timeout := 0
 	step := 0
@@ -136,7 +135,6 @@ func (g *Game) itemBattery() Item {
 		},
 		draw: func(canvas engine.Canvas) error {
 			canvas.Clear(false)
-			
 
 			doDraw := true
 

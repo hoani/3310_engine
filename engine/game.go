@@ -6,13 +6,19 @@ type Debug interface {
 	Console(format string, args ...any)
 }
 
+type Platform interface {
+	Cmd() command.Command[Key]
+	Snd() SoundPlayer
+	Debug() Debug
+}
+
 type GameInfo struct {
 	Fps   int
 	Debug bool
 }
 
 type Game interface {
-	Setup(cmd command.Command[Key], snd SoundPlayer, debug Debug)
+	Setup(Platform)
 	Info() *GameInfo
 	Update() error
 	Draw(canvas Canvas) error
